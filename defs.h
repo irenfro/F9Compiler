@@ -19,7 +19,7 @@
 #define     LEXCMPOP    13
 #define     LEXSTR      14
 #define     LEXLOGIC    15
-#define     LEXTYPE     16
+#define     LEXINT      16
 #define     LEXCHAR     17
 #define     LEXIF       18
 #define     LEXELSE     19

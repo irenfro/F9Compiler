@@ -1,0 +1,73 @@
+Grammar:
+
+pgm     ->  "program" "{" decls stmts "}" OR another way is to put the "}" at the end of stmts
+
+stmts   ->  stmt [stmt]*
+
+Why would it be good to do this: stmts   ->  stmt [stmt]* "}":?
+    you know when a set of statements end i.e. you can iterate while the next token is not a "}"
+    else: you need to iterate while the next token is equal to "if|while|func|identifier"
+    putting the "}" in the stmts makes the while loop a lot easier.
+    Dont build redundent code, i.e. the next token checker if keywords.  Comer put the "}" in pgm but he left the while
+    loop as while nexttoken is not equal to "}" bc every set of statements ends with a "}" anyways.
+
+No class next week but will give us stuff to do to make up for it
+
+Topic: Expressions
+
+a + 13 * b - ( x + y * z ) / 5
+
+    this really means, bc of operator precendence: see notebook drawing 1
+        it is a parse tree
+
+2 approaches was to build a compiler
+    1.  build a parse tree of the whole program
+        a. walk the tree and generate code
+            Take the tree as an example
+                1. do a dfs
+                2. generate assembly code to put 13 in a register then b then multiply them, then put a in and add the result.  so on and so forth
+        b. this allows for optimizations
+            i.  can have an optimizer walk through the tree and assign all vars a specific register
+            ii. can remove common sub expressions
+                1. for example 3 * ( a + b ) - 17 / ( a + b )
+                    can do it in a brute force manner to generate code or an optimizer can walk the parse tree can regonize that it is repeated and then assign a register for ( a + b )
+        c. an optimizer can figure out if it is going to run out of registers and decide which sub expressions to load into mem vs registers
+            i. seperate example 3 * ( 6 + 7 ) - 17 / ( a + b )
+                an optimizer can compute constant sub expressions at compile time so there is no need to generate code for that part of the parse tree.
+    2.  generate code as the parse happens
+        a. less optimizations since you cannont look at the entire code tree
+            but you gain ease of programming i.e. it is much easier to generate the code as you are parsing rather than looking at the parse tree
+        b. We are goning to do this method but most real compilers use method one bc they spend a lot of time on real optimizations
+
+Parsing Expressions
+
+expressions : operators have precendence
+LOGOP = || or &&
+CMPOP = < or > or <= or >= or == or !=
+ADDOP = + or -
+MULOP = * or /
+
+expr    ->  comp [ LOGOP comp ]*
+
+comp    ->  addn [ CMPOP addn ]*
+
+addn    ->  muln [ ADDOP muln ]*
+
+muln    ->  term [ MULOP term ]*
+
+term    ->  NAME | INTEGER | 
+
+TOP DOWN PARSER equivalent(three bars on top of each other) LL(1) equivalent Recursive Decent
+
+term    ->  NAME | INTEGER | '(' expr ')' // This is the recursion! back up to expr
+    if a "(" is found then it will recursivly call expr
+    This is beautiful bc in this order captures precendence
+        i.e. for addn we call LHS multiply then we find a "+" and we call RHS multiply
+        This is really cool, no need to bind precendence into the parser, it does it automatically when parsing
+        The precendence is encoded into the grammar.
+Read is special bc it is not part of expressions.  When it happens it can only appear on the RHS of the assignment.
+
+Tasks: in 2 weeks
+    Turn the grammar into code
+        Have a parser that can parse at least expressions, wishes that it works with some stmts or is begining to work on stmts
+

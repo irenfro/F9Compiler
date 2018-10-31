@@ -1,0 +1,84 @@
+Next week we will start code generation
+
+a few functions left out from last time.  Print and exit.  He classified them as LEXFCN so they came out the same way.  If a function occurs, you call parse function.  ParseFunction is pretty simple, giant if statment.  
+
+parseFCN(char* fname) {
+    match left paren
+    if(!strcmp(fname, "exit")) {
+        // handle exit
+        parseEXPR
+    } else {
+        // handle print
+        // see if list is empty
+        if(nexttok.toktyp == LEXRP) {
+            errmsg("empty list")
+        }
+        moreargs = 1;
+        argscount = 0;
+        while(moreargs > 0) {
+            argcount++;
+            if(argscount >= MAXARGS) {
+                errmsg("too many args, quitting");
+            }
+            if(nexttok.toktyp == LEXSTR) {
+                gettoken();
+            } else {
+                parseEXPR();
+            }
+            if(nexttok.toktyp == LEXCOMMA) {
+                gettoken
+            } else {
+                moreargs = 0;
+            }
+        }
+    }
+    match(LEXRP, "Expected right paren");
+    return;
+}
+
+Doesnt handle things like double commas or a comma after the last argument
+
+Assignment is the other statment type that we are left with
+
+parseASSIGN() {
+    // current token is the identifier
+    int symindex;
+    char temptok[MAXTOK];
+
+    symindex = symblookup(nexttok.tok_str);
+    gettoken();
+    match(LEXANSOP, "Expecting assignment operator");
+
+    strcpy(temptok, nexttok.tok_str);
+    gettoken();
+    if(nextok.tok_typ == LEXREAD) {
+        parseREAD();   
+    } else {
+        parseEXPR();
+        match(LEXSEMI, "Expecting semicolon");
+    }
+}
+
+parseREAD() {
+    int varindex;
+    int morevars;
+    gettoken();
+    match(LEXLP, "Expecting left paren");
+    morevars = 2;
+    int argcount = 0;
+    while(morevars > 0) {
+        argcount++;
+        if(nexttok.tok_typ != LEXNAME) {
+            errmsg("Expecting var name");
+        }
+        varindex = symlookup(nexttok.tok_str);
+        gettoken();
+        if(nexttok.tok_typ == LEXCOMMA) {
+            gettoken();
+        } else {
+            morevars = 0;
+        }
+    }
+    match(LEXRP, "Expecting right paren");
+    return;
+}

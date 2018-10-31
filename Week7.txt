@@ -1,0 +1,106 @@
+Week 7 Grammers
+
+LEFT        ->      RIGHT
+nonterminal         sequence of terminals and nonterminals
+
+LEFT    ->  X   |   Y
+LEFT    ->  X
+LEFT    ->  Y
+
+
+LEFT    ->  [stuff]*
+            ^ zero or more times
+
+LEFT    ->  EMPTY | rep
+rep     ->  stuff LEFT
+
+
+LEFT    ->  [stuff]+
+            ^ one or more times
+
+LEFT    ->  rep stuff1
+rep     ->  LEFT    |   EMPTY
+stuff1  ->  stuff
+
+EMPTY = greek epsilon
+
+GRAMMER FOR F9
+
+"asd" = terminal of LEXASD
+
+program     ->  pgm     "EOF"
+
+pgm         ->  "program"   "{"     decls   stmts   "}"
+
+decls       ->  ["type/int"     "name"    [","    "name"]*  ";" ]*
+
+stmts       ->  stmt    [stmt]*
+
+stmt        ->  "if"    if-body     |       "while"     while-body  |   identifier "="  assign  | "print" print-body
+                    | "read" read-body  |   "exit"  exit-body
+
+if-body     ->  "(" boolean-expressions ")" "{" stmts "}"
+
+while-body  ->  "(" boolean-expressions ")" "{" stmts "}"
+
+print-body  ->  "(" string ")" ";"
+
+read-body   ->  "(" identifier ["," identifier]* ")" ";"
+
+exit-body   ->  "(" LEXNUM ")"
+
+NEXT WEEK: Fill out the rest of the grammer.  You can omit math expressions.  His is only about half a page double spaced.  One function for each nonterminal
+
+parser:
+    lexinit();
+    gettoken();
+    program();
+
+function that corresponds to the grammar rule program
+void    program(void) {
+        pgm();
+        if(nexttok.toktyp != LEXEOF) {
+            error("Expected EOF"); // error routine should exit.
+        }
+        return;
+}
+
+function that corresponds to the grammer rule pgm
+void    pgm() {
+    if(nexttok.toktyp != LEXPRGM) {
+        error("Expected \"program\"");
+    }
+    gettoken();
+    if(nexttok.toktyp != LEXLBR) {
+        error("Expected \"{\"");
+    }
+    gettoken();
+    decls();
+    stmts();
+    if(nexttok.toktyp != LEXRBR) {
+        error("Expected \"}\"");
+    }
+    gettoken();
+    return;
+}
+
+function corresponds to simple grammer rule decls -> [ "type"   "name"    ';']*
+void decls() {
+    while(nexttok.toktyp == LEXINT) {
+        gettoken();
+        if(nexttok.toktyp != LEXID) {
+            error("Expected identifier");
+        }
+        // save id in symbol table somewhere
+        gettoken();
+        if(nexttok.toktyp != LEXSEMI) {
+            error("Expected \";\"");
+        }
+        gettoken();
+    }
+    return;
+}
+
+DONT WRITE AMBIGUOUS RHS BC IT MAKES IT HARD/IMPOSSIBLE TO WRITE A FUNCTION FOR
+
+

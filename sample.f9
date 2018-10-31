@@ -1,0 +1,38 @@
+program {
+
+    int a;
+    int one;
+    int two;
+    int three;
+    int tmp;
+    a = 0x11;
+    a = a + 1;
+
+    while(1) {
+
+		print("\nEnter three integers to find the max")
+		print(" or any non-digit to quit: ")
+
+		tmp = read(one, two, three)
+		if (tmp != 3) {
+			print("\nExiting...\n\n")
+			exit(0)
+		}
+		print("\n")
+
+        if(one == two && one == three) {
+            print("All three numbers are equal: ", one)
+        }
+        if(one > two && one > three) {
+            print("Max: ", one)
+        }
+        if(two > one && two > three) {
+            print("Max: ", two)
+        }
+        if(three > one && three > two) {
+            print("Max: ", three)
+        }
+        print("\n")
+    }
+
+}

@@ -1,0 +1,106 @@
+Week 9
+
+Back to Parsing
+
+Should have parsing expressions completed by now.
+
+start chaining expressions with semicolons
+If you are not done take it very seriously and finish this week
+    we are going to need to start parsing other things
+
+void parsestmt(void) {
+
+    char fname[MAXTOK];
+    switch(nexttok.tok_type) {
+        case LEXIF:
+            gettoken(); //move past if stmt
+            parseIF();
+            break;
+        case LEXWHILE:
+            gettoken() //move past while stmt
+            parseWHILE()
+            break;
+        case LEXNAME:
+            // do not remove the name before calling parseASSIGN
+            parseASSIGN();
+            break;
+        case LEXFCN:
+            strcpy(fname, nexttok.tok_type);
+            parseFCN(fname);
+            break;
+        case LEXSEMI:
+            errormsg("Did not expect \';\'...")
+        default:
+            errmsg("Expecting a statment"); // could also print token information but errmsg also displays line and char number
+    }
+} 
+
+void parseIF(void) {
+    // can put this if statment into its own method i.e. match(LEXLP, "error message"); VERY GOOD IDEA should call gettoken inside
+    if(nexttok.tok_type != LEXLP) {
+        errmsg("Expecting left paren");
+    }
+    parseEXPR();
+    match(LEXRP, "Expecting right paren");
+    match(LEXLB, "Expecting left brace");
+    parseSTMTS(); //parses statments until the next right brace
+    match(LEXRB, "Expecting right brace");
+    if(nexttok.tok_type == LEXELSE) {
+        gettoken();
+        match(LEXLB, "Expecting left brace");
+        parseSTMTS();
+        match(LEXRB, "Expecting right brace");
+    }
+}
+
+could create a seperate method for parsing { stmts }.  i.e. parsebody.  Not always a great idea bc it makes it harder to read
+
+Talk through a while statment
+what does parse while do? 
+
+void parseWHILE(void) {
+    match(LEXLP, "Expecting left paren");
+    parseEXPR();
+    match(LEXRP, "Expecting right paren");
+    match(LEXLB, "Expecting left brace");
+    parseSTMTS(); //parses statments until the next right brace
+    match(LEXRB, "Expecting right brace");
+}
+
+Parse Assignments
+
+Symbol Table
+storage in memory that stores every identifier
+declaration => add the symbol to the symbol table
+reference => look up symbol in the symbol table
+
+
+scheme
+name    |       type        |       size       
+__________________________________________
+xyz     |       int         |       0 => scalar vs aggregate i.e. arrays
+
+
+Real compiler's symbol tables are very complicated bc of scopes of vars
+
+Scope
+
+Most languages have a sense of scope and that is what makes the symbol tables compilcated
+
+Can number scopes by scope id and alter the symbol table so it looks like 
+scope id            |   name    |       type            |       size       
+____________________________________________________________________________________________
+level, unique id    |   xyz     |           int         |       0 => scalar vs aggregate i.e. arrays
+
+global is has zero scope id
+
+struct sym_entry {
+    char sym_name[MAXNAME/MAXTOK];
+    int sym_type; //defines for these
+    int size;
+}
+
+struct sym_entry symtab[MAXSYMS];
+int nsyms = 0;
+
+function that takes either add or lookup and finds the symbol in the symbol table
