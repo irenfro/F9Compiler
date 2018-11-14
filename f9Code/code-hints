@@ -1,0 +1,243 @@
+Some items in file defs.h (shared items included by lexan.c and parser.c)
+
+
+
+/********************************************************************************/
+/*										*/
+/*										*/
+/*		  Basic definitions used throughout the compiler		*/
+/*										*/
+/*										*/
+/********************************************************************************/
+
+/* Lexical token types */
+
+#define	LEXUNUSED	0	/* An unused value (should never be returned)	*/
+#define	LEXNAME		1	/* Variable name				*/
+#define	LEXNUM		2	/* A number					*/
+#define	LEXIF		5	/* 'if'						*/
+#define	LEXELSE		6	/* 'else'					*/
+#define	LEXREAD		9	/* 'read'					*/
+#define	LEXLP		10	/* Left parenthesis				*/
+#define	LEXRP		11	/* Right parenthesis				*/
+
+/* Globals shared by lexical analyzer and parser */
+
+struct	tok {			/* A token as returned by the lexical analyzer	*/
+	int	tok_typ;	/* One of the types defined above		*/
+	char	tok_str[MAXTOK];/* The actual string				*/
+	int	tok_val;	/* Value of the token is a number		*/
+};
+
+extern	struct	tok nexttok;	/* The next input token				*/
+
+
+extern	void	lexinit(void);
+
+extern	void	gettoken(void);
+
+extern	void	getch(void);
+
+extern	int	symlookup(char *);
+
+
+
+Some items in file lexan.c (the lexical analyzer functions)
+
+
+
+/************************************************************************/
+/*									*/
+/*									*/
+/*			Lexical analyzer				*/
+/*									*/
+/*									*/
+/*									*/
+/************************************************************************/
+
+#include "defs.h"
+
+int	state;			/* Current state in the lexical FSM	*/
+
+struct	tok nexttok;		/* The next input token.  Set by lexan	*/
+				/*	and used by the parser		*/
+int	toklen;			/* Length of the token			*/
+
+/* Declaration of the keyword table */
+
+struct	keyentry {
+	char	*keyword;	/* A keyword in the language		*/
+	int	lextype;	/* The lexical type for the keyword	*/
+};
+
+struct	keyentry ktab[] = {
+	{ "int",     LEXTYPE },
+	{ "if",      LEXIF   },
+	{ "else",    LEXELSE },
+	{ "while",   LEXWHILE},
+	{ "program", LEXPGM  },
+	{ "read",    LEXREAD },
+	{ "print",   LEXFCN  },
+	{ "exit",    LEXFCN  }
+};
+
+
+/* Declarations for the FSM */
+
+#define	FSM_STATE_INIT          0
+#define	FSM_STATE_SLASH         1
+#define	FSM_STATE_INCMT         2
+#define	FSM_STATE_STARINCMT     3
+#define	FSM_STATE_LINECMT       4
+#define	FSM_STATE_NAME          5
+...
+
+#define	STATES			17
+
+/* Definition of character range */
+
+#define	CHAR_RANGE	257	/* Range of character values: 0 to 255	*/
+				/* 	plus one for "EOF"		*/
+#define	EOF_CHAR	256
+
+/* FSM actions */
+
+#define	FSM_ACT_SKIP	0	/* Skip this character (no action)	*/
+#define	FSM_ACT_SAVE	1	/* Save the current character		*/
+#define	FSM_ACT_APP	2	/* Append the current character to the	*/
+				/*	saved characters		*/
+#define	FSM_ACT_RET	3	/* Have reached the end of a token, so	*/
+				/*	return (convert string to	*/
+				/*	integer value if LEXNUM)	*/
+#define	FSM_ACT_SRET	4	/* Save and return.  Used with single-	*/
+				/*	character token, such as comma	*/
+#define	FSM_ACT_ARET	5	/* Append and return,  Used with multi-	*/
+				/*	character tokens, such as +=	*/
+#define	FSM_ACT_ERR	6	/* Invalid combination of state and	*/
+				/*	input character			*/
+
+/* One entry in the FSM array */
+
+struct	fsmentry {
+	int	fsm_nextst;	/* Next state				*/
+	int	fsm_action;	/* Action for this transition		*/
+	int	fsm_lextyp;	/* For FSM_RET, the token type to return*/
+};
+
+struct	fsmentry fsm[STATES][CHAR_RANGE];
+
+/************************************************************************/
+/*									*/
+/* lexinit  --  initialize the lexical analyzer				*/
+/*									*/
+/************************************************************************/
+
+void	lexinit(void) {
+	int	s, c, k;
+
+	/* Initialize the FSM */
+
+	for (s=0; s<STATES; s++) {
+		for (c=0; c<CHAR_RANGE; c++) {
+			fsm[s][c].fsm_nextst = 0;
+			fsm[s][c].fsm_action = FSM_ACT_ERR;
+			fsm[s][c].fsm_lextyp = LEXUNUSED;
+		}
+	}
+
+	/* Fill in  FSM entries */
+
+/************************************************************************/
+/*                                                                      */
+/* Transitions for  FSM_STATE_INIT  (1)                                 */
+/*                                                                      */
+/************************************************************************/
+
+        /* Initial state */
+
+        for (c=0; c<=CHAR_RANGE; c++) {
+                fsm[FSM_STATE_INIT][c].fsm_nextst = FSM_STATE_INIT;
+                fsm[FSM_STATE_INIT][c].fsm_action = FSM_ACT_ERR;
+                fsm[FSM_STATE_INIT][c].fsm_lextyp = LEXUNUSED;
+        }
+
+        /* Whitespace */
+
+        fsm[FSM_STATE_INIT][BLANK].fsm_nextst = FSM_STATE_INIT;
+        fsm[FSM_STATE_INIT][BLANK].fsm_action = FSM_ACT_SKIP;
+        fsm[FSM_STATE_INIT][BLANK].fsm_lextyp = LEXUNUSED;
+        fsm[FSM_STATE_INIT][TAB].fsm_nextst = FSM_STATE_INIT;
+        fsm[FSM_STATE_INIT][TAB].fsm_action = FSM_ACT_SKIP;
+        fsm[FSM_STATE_INIT][TAB].fsm_lextyp = LEXUNUSED;
+        fsm[FSM_STATE_INIT][NEWLINE].fsm_nextst = FSM_STATE_INIT;
+        fsm[FSM_STATE_INIT][NEWLINE].fsm_action = FSM_ACT_SKIP;
+        fsm[FSM_STATE_INIT][NEWLINE].fsm_lextyp = LEXUNUSED;
+
+        /* End of file */
+
+        fsm[FSM_STATE_INIT][EOF_CHAR].fsm_nextst = FSM_STATE_INIT;
+        fsm[FSM_STATE_INIT][EOF_CHAR].fsm_action = FSM_ACT_RET;
+        fsm[FSM_STATE_INIT][EOF_CHAR].fsm_lextyp = LEXEOF;
+
+        /* Slash - possible start of comment */
+
+        fsm[FSM_STATE_INIT]['/'].fsm_nextst = FSM_STATE_SLASH;
+        fsm[FSM_STATE_INIT]['/'].fsm_action = FSM_ACT_SAVE;
+        fsm[FSM_STATE_INIT]['/'].fsm_lextyp = LEXUNUSED;
+
+        /* Letters - start of name */
+
+        for (c='A'; c<='Z'; c++) {
+                fsm[FSM_STATE_INIT][c].fsm_nextst = FSM_STATE_NAME;
+                fsm[FSM_STATE_INIT][c].fsm_action = FSM_ACT_SAVE;
+                fsm[FSM_STATE_INIT][c].fsm_lextyp = LEXUNUSED;
+        }
+
+	...
+
+	/* Initialize nextchar */
+	getch();
+	if (nextchar == EOF_CHAR) {
+		fprintf(stderr, "Input file is empty\n");
+		exit(1);
+	}
+
+	state = FSM_STATE_INIT;
+
+}
+
+
+
+/************************************************************************/
+/*									*/
+/* gettok  --  perform lexical analysis to set nexttok to the next	*/
+/*			 token						*/
+/*									*/
+/************************************************************************/
+
+void	gettoken(void) {
+
+	struct	fsmentry *fsmptr;	/* Ptr to current FSM entry	*/
+	int	ch;			/* Current input character	*/
+	char	*pch;			/* Walks through token string	*/
+	int	dig;			/* Next digit			*/
+	unsigned int tmp;		/* Used to accumulate a number	*/
+
+	while (1) {
+		ch = nextchar;
+		fsmptr = &fsm[state][ch];
+		state = fsmptr->fsm_nextst;
+
+		switch (fsmptr->fsm_action) {
+		    case FSM_ACT_SKIP:
+			if (ch != EOF_CHAR) {
+				getch();
+			}
+			break;
+
+		    case FSM_ACT_SAVE:
+			nexttok.tok_str[0] = ch;
+			toklen = 1;
+			getch();
+			break;
+		...

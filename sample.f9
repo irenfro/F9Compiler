@@ -8,7 +8,7 @@ program {
     a = 0x11;
     a = a + 1;
 
-    while(1) {
+    while(1 + 1) {
 
 		print("\nEnter three integers to find the max")
 		print(" or any non-digit to quit: ")

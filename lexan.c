@@ -152,6 +152,7 @@ void    gettoken(void) {
                         } else if(fsmptr->fsm_lextyp == LEXNAME) {
                             lookup();
                         }
+        //printf("next token str: %s val: %d define number: %d\n", nexttok.tok_str, nexttok.tok_val, nexttok.tok_typ);
                         return;
 
                     case FSM_ACT_SRET:
@@ -160,6 +161,7 @@ void    gettoken(void) {
                         nexttok.tok_str[1] = '\0';
                         nexttok.tok_typ = fsmptr->fsm_lextyp;
                         getch();
+        //printf("next token str: %s val: %d define number: %d\n", nexttok.tok_str, nexttok.tok_val, nexttok.tok_typ);
                         return;
 
                     case FSM_ACT_ARET:
@@ -170,12 +172,14 @@ void    gettoken(void) {
                         nexttok.tok_str[toklen] = '\0';
                         nexttok.tok_typ = fsmptr->fsm_lextyp;
                         getch();
+        //printf("next token str: %s val: %d define number: %d\n", nexttok.tok_str, nexttok.tok_val, nexttok.tok_typ);
                         return;
 
                     case FSM_ACT_ERR:
                         errmsg("Invalid input (not a valid token)");
                 }
         }
+        //printf("next token str: %s val: %d define number: %d\n", nexttok.tok_str, nexttok.tok_val, nexttok.tok_typ);
         return;
 }
 

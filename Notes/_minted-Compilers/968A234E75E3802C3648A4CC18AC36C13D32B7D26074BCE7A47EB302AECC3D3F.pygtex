@@ -1,0 +1,13 @@
+\begin{Verbatim}[commandchars=\\\{\}]
+\PYG{c}{\PYGZsh{}while(expr) \PYGZob{}}
+\PYG{c}{\PYGZsh{}    stmts}
+\PYG{c}{\PYGZsh{}\PYGZcb{}}
+\PYG{c}{\PYGZsh{} depending on the assembler you may need a directive after the colon}
+\PYG{n+nl}{L0001:}
+    \PYG{c}{\PYGZsh{} asm for expr}
+    \PYG{n+nf}{bzero} \PYG{n+no}{L0002} \PYG{c}{\PYGZsh{} if the expr does not hold}
+    						\PYG{c}{\PYGZsh{} nothing for LEXLB}
+    \PYG{c}{\PYGZsh{} asm for stmts}
+    \PYG{n+no}{br} \PYG{n+no}{L0001}
+\PYG{n+nl}{L0002:}
+\end{Verbatim}

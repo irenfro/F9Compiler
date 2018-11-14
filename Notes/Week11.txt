@@ -1,0 +1,49 @@
+Two ways to do code gen:
+    1. Embed in parser
+    2. Build a parse tree
+            generate code by walking the tree
+
+We are going to do option 1, option 2 is what most professionals use
+
+parser can either generate assembly code or high level code
+    in either case you run it through an assembler, gcc or gas, which gives you object code which you run through a linker which pulls in the library code.
+
+We are going to be generating high level code which we run through the linker and then create the executable
+He is walking us through his implementation of his parser
+
+It is really cool, he is embedded the c code as printf into his parser
+It is very elegant, we are parsing left to right and we are generating the code left to right as well.
+
+Assembly language generation is interesting bc you need to generate different assembly language for each system.  Comer says its very hard bc you need to learn all of the commands for all languages and then you need to learn what hardware does what instructions better so that you can provide better optimization.
+
+
+f9cc -S x.f9
+    this outputs x.S in assembly language so that you can see what code generate
+
+Use a hashtable for mapping var names to id numbers in the symtable
+
+
+In parsedecls we print out the tok_str but we have to check to make sure that it is a valid c datatype
+
+all of this should be very intuitive and straightforward.
+
+What changes with assembly code?
+There are both branches and jumps.  Branches are for close by things, the asm that is generated is br and a number of lines up or down, jump is for long range branches which takes an actual address
+Assebmly code for while loop
+    get a label generator bc you will need it 
+
+while(expr) {
+    stmts
+}
+// depending on the assembler you may need a directive after the colon
+L0001:
+    asm for expr
+    bzero L0002 // if the expr doesnt hold 
+    nothing for LEXLB
+    code for stmts
+    br L0001
+L0002:
+
+control structures need to have labels
+
+We can start doing code generation

@@ -11,7 +11,6 @@ int     main(int argc, char **argv) {
     }
     file = fopen(argv[1], "r");
     parseinit();
-    printf("No Errors\n");
     return 0;
 }
 
@@ -32,25 +31,44 @@ void    program(void) {
 
 void    pgm(void) {
     match(LEXPGM, "Expected \"program\"");
+    /* Code Gen */
+    printf("#include <stdio.h>\n");
+    printf("#include <stdlib.h>\n");
+    /* End Code Gen */
     match(LEXLB, "Expected \"{\"");
+    printf("void    main(void)  {\n");
     parseDECLS();
     parseSTMTS();
     match(LEXRB, "Expected \"}\"");
+    printf("    exit(0);\n}");
     return;
 }
 
 void    parseDECLS() {
     char name[MAXTOK];
     while(nexttok.tok_typ == LEXINT) {
+        printf("         %s    ", nexttok.tok_str);
         gettoken();
         if(nexttok.tok_typ != LEXNAME) {
             errmsg("Expecting identifier");
         }
+        printf("%s", nexttok.tok_str);
         strcpy(name, nexttok.tok_str);
         symStore(name, 0);
         memset(name, '\0', MAXTOK);
         gettoken();
+        while(nexttok.tok_typ == LEXCOMMA) {
+            gettoken();
+            if(nexttok.tok_typ != LEXNAME) {
+                errmsg("Expecting identifier");
+            }
+            printf(", %s", nexttok.tok_str);
+            strcpy(name, nexttok.tok_str);
+            symStore(name, 0);
+            memset(name, '\0', MAXTOK);
+        }
         match(LEXSEMI, "Expected \";\"");
+        printf(";\n");
     }
     return;
 }
@@ -91,32 +109,42 @@ void    parseSTMT(void) {
 
 void    parseIF() {
     match(LEXLP, "Expecting \"(\"");
+    printf("if (");
     parseEXPR();
     match(LEXRP, "Expecting \")\"");
+    printf(")");
     match(LEXLB, "Expecting \"{\"");
+    printf(" { \n");
     parseSTMTS();   // Parse statments until the next right brace
     match(LEXRB, "Expecting \"}\"");
+    printf("}\n");
     if(nexttok.tok_typ == LEXELSE) {
         gettoken();     // Remove the else keyword
         match(LEXLB, "Expecting \"{\"");
+        printf(" else {\n");
         parseSTMTS();
         match(LEXRB, "Expecting \"}\"");
+        printf(" }\n");
     }
 }
 
 void    parseWHILE() {
     match(LEXLP, "Expecting \"(\"");
+    printf("while ( ");
     parseEXPR();
     match(LEXRP, "Expecting \")\"");
+    printf(" )");
     match(LEXLB, "Expecting \"{\"");
+    printf(" {\n");
     parseSTMTS();
     match(LEXRB, "Expecting \"}\"");
+    printf(" }\n");
 }
 
 void    parseEXPR() {
     parseCOMP();
     while(nexttok.tok_typ == LEXLOGIC) {
-        // TODO need to save the logical operator
+        printf(" %s ", nexttok.tok_str);
         gettoken();
         parseCOMP();
     }
@@ -125,7 +153,7 @@ void    parseEXPR() {
 void    parseCOMP() {
     parseADDN();
     while(nexttok.tok_typ == LEXCMPOP) {
-        // TODO save the operator
+        printf(" %s ", nexttok.tok_str);
         gettoken();
         parseADDN();
     }
@@ -134,7 +162,7 @@ void    parseCOMP() {
 void    parseADDN() {
     parseMULN();
     while(nexttok.tok_typ == LEXADDOP)  {
-        // TODO save the operator
+        printf(" %s ", nexttok.tok_str);
         gettoken();
         parseMULN();
     }
@@ -143,7 +171,7 @@ void    parseADDN() {
 void    parseMULN() {
     parseTERM();
     while(nexttok.tok_typ == LEXMULOP) {
-        // TODO save the operator
+        printf(" %s ", nexttok.tok_str);
         gettoken();
         parseTERM();
     }
@@ -151,17 +179,18 @@ void    parseMULN() {
 
 void    parseTERM() {
     if(nexttok.tok_typ == LEXNAME) {
-        // TODO save the name
-        int temp = symLookup(nexttok.tok_str);
-        temp++; // TODO remove here to compile through -Wall
+        symLookup(nexttok.tok_str);
+        printf("%s", nexttok.tok_str);
         gettoken();
     } else if(nexttok.tok_typ == LEXNUM) {
-        // TODO save the num
+        printf("%d", nexttok.tok_val);
         gettoken();
     } else if(nexttok.tok_typ == LEXLP) {
-        gettoken();     // Remove the (
+        printf("( ");
+        gettoken();
         parseEXPR();
         match(LEXRP, "Expecting \")");
+        printf(" )");
     } else {
         errmsg("Invalid term in expression");
     }
@@ -174,8 +203,13 @@ void    parseASSIGN() {
     char temptok[MAXTOK];
 
     symindex = symLookup(nexttok.tok_str);
+    printf("%s  ", nexttok.tok_str);
     gettoken();
-    match(LEXASNOP, "Expecting assignment operator");
+    if(nexttok.tok_typ != LEXASNOP) {
+        errmsg("Expecting assignment operator");
+    }
+    printf("%s  ", nexttok.tok_str);
+    gettoken();
 
     strcpy(temptok, nexttok.tok_str);
     if(nexttok.tok_typ == LEXREAD) {
@@ -183,10 +217,12 @@ void    parseASSIGN() {
     } else {
         parseEXPR();
         match(LEXSEMI, "Expecting semicolon");
+        printf(";\n");
     }
 }
 
 void    parseREAD() {
+    printf(" /* CODE FOR READ */ \n");
     int varindex;
     int morevars;
     gettoken();
@@ -214,8 +250,9 @@ void    parseFCN(char* fname) {
     // match left paren
     match(LEXLP, "Expecting \"(\"");
     if(!strcmp(fname, "exit")) {
-        // handle exit
+        printf("exit( ");
         parseEXPR();
+        printf(" );\n");
     } else {
         // handle print
         // see if list is empty
@@ -230,9 +267,13 @@ void    parseFCN(char* fname) {
                 errmsg("too many args, quitting");
             }
             if(nexttok.tok_typ == LEXSTR) {
+                symFind(nexttok.tok_str);
+                printf("printf(\"%%s\", %s);\n", nexttok.tok_str);
                 gettoken();
             } else {
+                printf("printf(\"\%%d\", ");
                 parseEXPR();
+                printf(" );\n");
             }
             if(nexttok.tok_typ == LEXCOMMA) {
                 gettoken();

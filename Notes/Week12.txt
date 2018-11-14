@@ -1,0 +1,82 @@
+For the end of the class, submit a tarball of everything that you have done with some paragraphs explaining what worked and what did not.  On the last wednesday he will also ask us questions so that we know how compilers work.
+
+Topic: Label Managment
+
+if(expr) {
+    stmts
+}
+
+code for expr
+branch zero LAB001
+code for stmts
+LAB001:
+
+if(expr) {
+    stmts
+} else {
+    stmts2
+}
+
+code for expr
+branch zero LAB002
+code for stmts1
+branch LAB003
+LAB002:
+code for stmts2
+LAB003:
+
+MAKE EACH LABEL UNIQUE
+
+
+while(expr) {
+    stmts
+}
+
+LAB004:
+code for expr
+branch zero LAB005
+stmts
+branch LAB004
+LAB005:
+
+
+Use macros for calculation for branch vs jump.  Nowadays most compilers can just optimize to make jumps shorter so you use the longest possible jump and then it will try to shorten the instruction.
+
+C code generation
+F9:
+int x;
+printf(5 + 7, "hello", x, x + 5)
+
+C: could turn into a printf
+
+printf("%d%s%d%d", 5 + 7, "hello", x, x + 5);
+or have a bunch of printf statements
+or generate a bunch of tmp vars
+int temp1 = 5 + 7;
+char* temp2 = "hello";
+int temp3 = x;
+int temp4 = x + 5;
+
+while creating these we see the types and then we build the string from that.
+
+%d      ->  tmp = 5 + 7
+%d%s    ->  tmp1 = 5 + 7; char* tmp2 = "hello"
+...
+"%d%s%d%d", tmp1, tmp2, tmp3, tmp4)
+follows at the end
+the tmp var managment is the same as the assembly label management
+
+
+
+x + 5 - y
+
+ld r1, x
+ld r2, $5
+add r1, r2 ; add r2 to r1
+sto r1, tmp005 ; store it in a temp var
+ld r1, tmp005
+sub r1 r2
+sto r1, tmp 006
+
+
+Next time we will talk about how to generate c code for read.

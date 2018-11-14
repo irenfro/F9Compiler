@@ -1,0 +1,155 @@
+Comments:
+		/* anything including NEWLINEs; a comment ends with */
+		// anything up to the next NEWLINE
+
+Whitespace:
+		blanks or tabs
+
+Constants:
+
+    decimal:	a string of decimal digits
+    hex:	0x followed by a sting of hex digits (0-9 and any of abcdef)
+
+Variables names:
+
+    A name must start with a lower-case or uppercase letter or an underscore and
+		can contain letters, digits, and underscores
+
+Types:
+
+    The only type is   int
+
+    Integers are 32-bit signed values
+
+
+A program has the form:
+
+    program {
+		variable declarations
+
+		statements
+    }
+
+
+Declarations:
+
+    Variables are declared as in C, by giving the type name followed by variable
+    names and then a terminating semicolon.  If multiple names are specified,
+    they are separated by commas (as in C).
+    Examples:
+
+		int  x;
+		int  a, b;
+
+
+Statements:
+
+    The item 'statements' in the program description above means that one or
+    more statements appears.  The syntax of each statement is planned carefully
+    to ensure that no further separation is needed.  In particular, a
+    semicolon should never occur after a right brace.  Furthermore, the
+    language does not allow a null statement (i.e., a semicolon by itself).
+
+Statement types:
+
+    There are four statement types: conditional, iteration, function call
+	and assignment.
+
+    Note: Unlike C, braces are required, even if only one statement appears.
+	So, braces are not optional in the descriptions that follow.
+
+Conditional:
+
+    As in most languages, there are tow forms of a conditional statement:
+
+	    if (expression) { statements }
+
+	    if (expression) { statements } else { statements }
+
+Iteration:
+
+	while (expression) { statements }
+
+Function call:
+
+    There are two builtin functions that can be called:
+
+	exit( expression )
+
+     The expression gives a Unix exit code, with zero used for a
+     normal exit and non-zero used for abnormal exit.
+
+	print( one-or-more-comma-separated arguments )
+
+    Each of the comma-separated arguments for print can take one of
+    two forms: an arithmetic expression (the value is printed in
+    decimal) or a quoted string, such as:
+
+		"Here is some output.\n"
+
+    A quoted string uses the same conventions as C, namely that a
+    backslash means to treat the next character specially. The
+    sequence
+		\"
+
+    inserts a double quote into the string, \t inserts a tab, \n
+    inserts a NEWLINE, and so on, as in C.
+
+Assignment:
+
+    An assignment statement takes one of two forms.
+
+    * Form 1: conventional assignment
+
+	variable  assignmentop  expression ;
+
+    where assignmentop is one of the assignment operators:
+
+	=  +=   -=   *=   /=
+
+    An expression is an arithmetic expression, and can contain the following
+    operators
+
+	multiplication operators: *  /		multiply, divide
+
+	addition operators:	  +   -		plus, minus
+
+	comparison operators:	  <  <=		less, less-equal
+				  >  >=		greater, greater-equal
+				  == !=		equal, not equal
+
+	logical connectors:	  && ||		and or, executed left-to-right
+
+    As usual, multiplication operators take precedence over addition
+    operators, which take precedence over comparison operators, which
+    take precedence over logical connectors. As in C, parenthesis can be
+    used to group items (i.e., to override normal precedence.  So,
+
+		 a * (b + c)
+
+    means "add b and c, and then multiply the result by a.  As in
+    mathematics, parentheses must be well-nested.
+
+    * Form 2: read operation
+
+    The second form of assignment reads values from standard input, stores
+    each value in a specified variable, and returns the number of items
+    read, which is the value to be assigned.
+
+	count_variable = read( comma-separated-variable-list)
+
+    where the comma-separated-variable-list is a list of variables
+    to be read.  The read function scans the input, ignoring white
+    space.  It extracts integer values until values have been found
+    for all variables in the list or a non-digit has been encountered.
+    The read function returns the number of variables that have
+    been read.  Note: once it encounters a non-digit, the read
+    function can never be used to read further items.
+
+
+Reserved words:
+
+    The following are reserved, and cannot be used as variable names:
+
+	int, if, else, while, program, print, exit, read
+
