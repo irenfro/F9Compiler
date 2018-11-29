@@ -1,0 +1,46 @@
+/* Test basic program structure */
+
+program {
+
+	int	a, start, limit;
+	int	x, sum;
+
+	print("\nThis is prog1\n\nTesting the basics of comparisons\n\n")
+
+	if ( 2 > 5 ) {
+		print ("error: 2 compares greater than 5!\n\n")
+		exit(1)
+	}
+
+	a = 5;
+
+	if ( 3 > 1) {
+		print(" 3 is indeed greater than 1\n\n")
+	}
+
+	if ( 1+2 == 3) {
+		print(" 1 + 2 is indeed equal to 3\n\n")
+	} else {
+		print(" 1 + 2 != 3\n\n")
+		exit(1)
+	}
+
+	if ( (1+2 == 3) && (5 != 4) ) {
+		print(" (1+2 == 3) && (5 != 4) is true \n\n")
+	} else {
+		print(" (1+2 == 3) && (5 != 4)  fails\n")
+		exit(1)
+	}
+
+	start = 1;
+	limit = 10;
+
+	sum=0;
+	x = start;
+	while(x <= limit) {
+		sum = sum + x;
+		x += 1;		
+	}
+	print("\nThe sum of integers from ", start, " to ", limit, " is: ", sum, "\n\n")
+	exit(0)
+}

@@ -9,20 +9,47 @@ Constants:
 
     decimal:	a string of decimal digits
     hex:	0x followed by a sting of hex digits (0-9 and any of abcdef)
+    string:	a quoted string, such has "hi there"
+
+
+String constants:
+
+    A string constant consists of characters surrounded by double quotes,
+    as in:
+
+		"Here is a string.\n"
+
+    F9 strings use the same conventions as C, namely that a backslash means
+    to treat the next character specially.  For example, the sequence
+
+		\n
+
+    represents a NEWLINE character.  The sequence \" inserts a double quote
+    into the string, \t inserts a tab, \n inserts a NEWLINE, and so on.
+
 
 Variables names:
 
-    A name must start with a lower-case or uppercase letter or an underscore and
-		can contain letters, digits, and underscores
+    A name must start with a lower-case or uppercase letter or an underscore
+		and can contain letters, digits, and underscores
 
 Types:
 
-    The only type is   int
+    F9 provides two type names used to declare variables:
 
-    Integers are 32-bit signed values
+	int	An integer is always a 32-bit signed value
+
+	str	String, as defined above
+
+Arrays:
+
+    F9 provides one-dimensional arrays.  As in C, each array is indexed from
+    0 through N-1, where N is the number of items in the array.
 
 
-A program has the form:
+Program format
+
+    An F9 program has the form:
 
     program {
 		variable declarations
@@ -40,13 +67,21 @@ Declarations:
 
 		int  x;
 		int  a, b;
+		str  s;
 
+    An array is declared by appending [size], where size is a positive number
+    that specifies the number of items in the array.
+    Examples:
+
+		str  nlist[10];		/* nlist is an array of 10 strings */
+		int  m[20], n[2];	/* m  is an array of 20 integers, and */
+					/* n is an array of 2 integers */
 
 Statements:
 
     The item 'statements' in the program description above means that one or
     more statements appears.  The syntax of each statement is planned carefully
-    to ensure that no further separation is needed.  In particular, a
+    to ensure that no further separation is needed or allowed.  In particular, a
     semicolon should never occur after a right brace.  Furthermore, the
     language does not allow a null statement (i.e., a semicolon by itself).
 
@@ -83,32 +118,28 @@ Function call:
 
     Each of the comma-separated arguments for print can take one of
     two forms: an arithmetic expression (the value is printed in
-    decimal) or a quoted string, such as:
-
-		"Here is some output.\n"
-
-    A quoted string uses the same conventions as C, namely that a
-    backslash means to treat the next character specially. The
-    sequence
-		\"
-
-    inserts a double quote into the string, \t inserts a tab, \n
-    inserts a NEWLINE, and so on, as in C.
+    decimal) or a string, which can be a string variable or a
+    string constant.
 
 Assignment:
 
     An assignment statement takes one of two forms.
 
-    * Form 1: conventional assignment
+  * Form 1: conventional assignment
 
-	variable  assignmentop  expression ;
+	variable  assignmentop  value ;
 
-    where assignmentop is one of the assignment operators:
+    For a string variable, the only assignmentop is =, and the
+    value must be a string constant ( "..."  ).
+
+    For an integer variable, assignment operator can be any of the
+    following assignment operators, which have the same meaning as
+    in C:
 
 	=  +=   -=   *=   /=
 
-    An expression is an arithmetic expression, and can contain the following
-    operators
+    and the value is an arithmetic expression that can contain
+    any of the following operators:
 
 	multiplication operators: *  /		multiply, divide
 
@@ -130,7 +161,8 @@ Assignment:
     means "add b and c, and then multiply the result by a.  As in
     mathematics, parentheses must be well-nested.
 
-    * Form 2: read operation
+
+  * Form 2: read assignment
 
     The second form of assignment reads values from standard input, stores
     each value in a specified variable, and returns the number of items
@@ -151,5 +183,4 @@ Reserved words:
 
     The following are reserved, and cannot be used as variable names:
 
-	int, if, else, while, program, print, exit, read
-
+	int, str, if, else, while, program, print, exit, read

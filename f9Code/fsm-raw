@@ -1,0 +1,511 @@
+#define	FSM_STATE_INIT          0
+/************************************************************************/
+/*									*/
+/* Transitions for  FSM_STATE_INIT  (1)                                 */
+/*									*/
+/************************************************************************/
+
+	/* Initial state */
+
+	for (c=0; c<=CHAR_RANGE; c++) {
+		fsm[FSM_STATE_INIT][c].fsm_nextst = FSM_STATE_INIT;
+		fsm[FSM_STATE_INIT][c].fsm_action = FSM_ACT_ERR;
+		fsm[FSM_STATE_INIT][c].fsm_lextyp = LEXUNUSED;
+	}
+
+	/* Whitespace */
+
+	fsm[FSM_STATE_INIT][BLANK].fsm_nextst = FSM_STATE_INIT;
+	fsm[FSM_STATE_INIT][BLANK].fsm_action = FSM_ACT_SKIP;
+	fsm[FSM_STATE_INIT][BLANK].fsm_lextyp = LEXUNUSED;
+	fsm[FSM_STATE_INIT][TAB].fsm_nextst = FSM_STATE_INIT;
+	fsm[FSM_STATE_INIT][TAB].fsm_action = FSM_ACT_SKIP;
+	fsm[FSM_STATE_INIT][TAB].fsm_lextyp = LEXUNUSED;
+	fsm[FSM_STATE_INIT][NEWLINE].fsm_nextst = FSM_STATE_INIT;
+	fsm[FSM_STATE_INIT][NEWLINE].fsm_action = FSM_ACT_SKIP;
+	fsm[FSM_STATE_INIT][NEWLINE].fsm_lextyp = LEXUNUSED;
+
+	/* End of file */
+
+	fsm[FSM_STATE_INIT][EOF_CHAR].fsm_nextst = FSM_STATE_INIT;
+	fsm[FSM_STATE_INIT][EOF_CHAR].fsm_action = FSM_ACT_RET;
+	fsm[FSM_STATE_INIT][EOF_CHAR].fsm_lextyp = LEXEOF;
+
+	/* Slash - possible start of comment */
+
+	fsm[FSM_STATE_INIT]['/'].fsm_nextst = FSM_STATE_SLASH;
+	fsm[FSM_STATE_INIT]['/'].fsm_action = FSM_ACT_SAVE;
+	fsm[FSM_STATE_INIT]['/'].fsm_lextyp = LEXUNUSED;
+
+	/* Letters - start of name */
+
+	for (c='A'; c<='Z'; c++) {
+		fsm[FSM_STATE_INIT][c].fsm_nextst = FSM_STATE_NAME;
+		fsm[FSM_STATE_INIT][c].fsm_action = FSM_ACT_SAVE;
+		fsm[FSM_STATE_INIT][c].fsm_lextyp = LEXUNUSED;
+	}
+	for (c='a'; c<='z'; c++) {
+		fsm[FSM_STATE_INIT][c].fsm_nextst = FSM_STATE_NAME;
+		fsm[FSM_STATE_INIT][c].fsm_action = FSM_ACT_SAVE;
+		fsm[FSM_STATE_INIT][c].fsm_lextyp = LEXUNUSED;
+	}
+	fsm[FSM_STATE_INIT]['_'].fsm_nextst = FSM_STATE_NAME;
+	fsm[FSM_STATE_INIT]['_'].fsm_action = FSM_ACT_SAVE;
+	fsm[FSM_STATE_INIT]['_'].fsm_lextyp = LEXUNUSED;
+
+	/* Numbers - start of numeric constant */
+
+	fsm[FSM_STATE_INIT]['0'].fsm_nextst = FSM_STATE_ZERO;
+	fsm[FSM_STATE_INIT]['0'].fsm_action = FSM_ACT_SAVE;
+	fsm[FSM_STATE_INIT]['0'].fsm_lextyp = LEXUNUSED;
+	for (c='1'; c<='9'; c++) {
+		fsm[FSM_STATE_INIT][c].fsm_nextst = FSM_STATE_DECNUM;
+		fsm[FSM_STATE_INIT][c].fsm_action = FSM_ACT_SAVE;
+		fsm[FSM_STATE_INIT][c].fsm_lextyp = LEXUNUSED;
+	}
+
+	/* Individual characters (){}[];, */
+
+	fsm[FSM_STATE_INIT]['('].fsm_nextst = FSM_STATE_INIT;
+	fsm[FSM_STATE_INIT]['('].fsm_action = FSM_ACT_SRET;
+	fsm[FSM_STATE_INIT]['('].fsm_lextyp = LEXLP;
+	fsm[FSM_STATE_INIT][')'].fsm_nextst = FSM_STATE_INIT;
+	fsm[FSM_STATE_INIT][')'].fsm_action = FSM_ACT_SRET;
+	fsm[FSM_STATE_INIT][')'].fsm_lextyp = LEXRP;
+	fsm[FSM_STATE_INIT]['{'].fsm_nextst = FSM_STATE_INIT;
+	fsm[FSM_STATE_INIT]['{'].fsm_action = FSM_ACT_SRET;
+	fsm[FSM_STATE_INIT]['{'].fsm_lextyp = LEXLB;
+	fsm[FSM_STATE_INIT]['}'].fsm_nextst = FSM_STATE_INIT;
+	fsm[FSM_STATE_INIT]['}'].fsm_action = FSM_ACT_SRET;
+	fsm[FSM_STATE_INIT]['}'].fsm_lextyp = LEXRB;
+	fsm[FSM_STATE_INIT]['['].fsm_nextst = FSM_STATE_INIT;
+	fsm[FSM_STATE_INIT]['['].fsm_action = FSM_ACT_SRET;
+	fsm[FSM_STATE_INIT]['['].fsm_lextyp = LEXLBK;
+	fsm[FSM_STATE_INIT][']'].fsm_nextst = FSM_STATE_INIT;
+	fsm[FSM_STATE_INIT][']'].fsm_action = FSM_ACT_SRET;
+	fsm[FSM_STATE_INIT][']'].fsm_lextyp = LEXRBK;
+	fsm[FSM_STATE_INIT][';'].fsm_nextst = FSM_STATE_INIT;
+	fsm[FSM_STATE_INIT][';'].fsm_action = FSM_ACT_SRET;
+	fsm[FSM_STATE_INIT][';'].fsm_lextyp = LEXSEMI;
+	fsm[FSM_STATE_INIT][','].fsm_nextst = FSM_STATE_INIT;
+	fsm[FSM_STATE_INIT][','].fsm_action = FSM_ACT_SRET;
+	fsm[FSM_STATE_INIT][','].fsm_lextyp = LEXCOMMA;
+
+	/* Logical connectors  &&  || */
+
+	fsm[FSM_STATE_INIT]['&'].fsm_nextst = FSM_STATE_LOG_AND;
+	fsm[FSM_STATE_INIT]['&'].fsm_action = FSM_ACT_SAVE;
+	fsm[FSM_STATE_INIT]['&'].fsm_lextyp = LEXUNUSED;
+	fsm[FSM_STATE_INIT]['|'].fsm_nextst = FSM_STATE_LOG_OR;
+	fsm[FSM_STATE_INIT]['|'].fsm_action = FSM_ACT_SAVE;
+	fsm[FSM_STATE_INIT]['|'].fsm_lextyp = LEXUNUSED;
+
+	/* Comparison */
+
+	fsm[FSM_STATE_INIT]['<'].fsm_nextst = FSM_STATE_CMP;
+	fsm[FSM_STATE_INIT]['<'].fsm_action = FSM_ACT_SAVE;
+	fsm[FSM_STATE_INIT]['<'].fsm_lextyp = LEXUNUSED;
+	fsm[FSM_STATE_INIT]['>'].fsm_nextst = FSM_STATE_CMP;
+	fsm[FSM_STATE_INIT]['>'].fsm_action = FSM_ACT_SAVE;
+	fsm[FSM_STATE_INIT]['>'].fsm_lextyp = LEXUNUSED;
+	fsm[FSM_STATE_INIT]['!'].fsm_nextst = FSM_STATE_CMP;
+	fsm[FSM_STATE_INIT]['!'].fsm_action = FSM_ACT_SAVE;
+	fsm[FSM_STATE_INIT]['!'].fsm_lextyp = LEXUNUSED;
+	fsm[FSM_STATE_INIT]['='].fsm_nextst = FSM_STATE_EQU;
+	fsm[FSM_STATE_INIT]['='].fsm_action = FSM_ACT_SAVE;
+	fsm[FSM_STATE_INIT]['='].fsm_lextyp = LEXUNUSED;
+
+	/* + - or * (could be followed by an equal sign	*/
+	/*	Note: should change genfs to allow '-'	*/
+
+	fsm[FSM_STATE_INIT]['+'].fsm_nextst = FSM_STATE_ADD;
+	fsm[FSM_STATE_INIT]['+'].fsm_action = FSM_ACT_SAVE;
+	fsm[FSM_STATE_INIT]['+'].fsm_lextyp = LEXUNUSED;
+	fsm[FSM_STATE_INIT]['-'].fsm_nextst = FSM_STATE_ADD;
+	fsm[FSM_STATE_INIT]['-'].fsm_action = FSM_ACT_SAVE;
+	fsm[FSM_STATE_INIT]['-'].fsm_lextyp = LEXUNUSED;
+	fsm[FSM_STATE_INIT]['*'].fsm_nextst = FSM_STATE_MUL;
+	fsm[FSM_STATE_INIT]['*'].fsm_action = FSM_ACT_SAVE;
+	fsm[FSM_STATE_INIT]['*'].fsm_lextyp = LEXUNUSED;
+
+	/* Quoted string (used in the print function */
+
+	fsm[FSM_STATE_INIT]['"'].fsm_nextst = FSM_STATE_STR;
+	fsm[FSM_STATE_INIT]['"'].fsm_action = FSM_ACT_SAVE;
+	fsm[FSM_STATE_INIT]['"'].fsm_lextyp = LEXUNUSED;
+
+#define	FSM_STATE_SLASH         1
+/************************************************************************/
+/*									*/
+/* Transitions for  FSM_STATE_SLASH  (2)                                */
+/*									*/
+/************************************************************************/
+
+
+	/* Have seen a slash */
+
+	for (c=0; c<=CHAR_RANGE; c++) {
+		fsm[FSM_STATE_SLASH][c].fsm_nextst = FSM_STATE_INIT;
+		fsm[FSM_STATE_SLASH][c].fsm_action = FSM_ACT_RET;
+		fsm[FSM_STATE_SLASH][c].fsm_lextyp = LEXMULOP;
+	}
+	fsm[FSM_STATE_SLASH]['='].fsm_nextst = FSM_STATE_INIT;
+	fsm[FSM_STATE_SLASH]['='].fsm_action = FSM_ACT_APP;
+	fsm[FSM_STATE_SLASH]['='].fsm_lextyp = LEXASNOP;
+	fsm[FSM_STATE_SLASH]['*'].fsm_nextst = FSM_STATE_INCMT;
+	fsm[FSM_STATE_SLASH]['*'].fsm_action = FSM_ACT_SKIP;
+	fsm[FSM_STATE_SLASH]['*'].fsm_lextyp = LEXUNUSED;
+	fsm[FSM_STATE_SLASH]['/'].fsm_nextst = FSM_STATE_LINECMT;
+	fsm[FSM_STATE_SLASH]['/'].fsm_action = FSM_ACT_SKIP;
+	fsm[FSM_STATE_SLASH]['/'].fsm_lextyp = LEXUNUSED;
+	
+
+#define	FSM_STATE_INCMT         2
+/************************************************************************/
+/*									*/
+/* Transitions for  FSM_STATE_INCMT  (3)                                */
+/*									*/
+/************************************************************************/
+
+	/* In a comment, having seen a slash star */
+
+	for (c=0; c<=CHAR_RANGE; c++) {
+		fsm[FSM_STATE_INCMT][c].fsm_nextst = FSM_STATE_INCMT;
+		fsm[FSM_STATE_INCMT][c].fsm_action = FSM_ACT_SKIP;
+		fsm[FSM_STATE_INCMT][c].fsm_lextyp = LEXUNUSED;
+	}
+	fsm[FSM_STATE_INCMT]['*'].fsm_nextst = FSM_STATE_STARINCMT;
+	fsm[FSM_STATE_INCMT]['*'].fsm_action = FSM_ACT_SKIP;
+	fsm[FSM_STATE_INCMT]['*'].fsm_lextyp = LEXUNUSED;
+
+
+#define	FSM_STATE_STARINCMT     3
+/************************************************************************/
+/*									*/
+/* Transitions for  FSM_STATE_STARINCMT  (4)                            */
+/*									*/
+/************************************************************************/
+
+	/* Have seen a star while in a comment */
+
+	for (c=0; c<=CHAR_RANGE; c++) {
+		fsm[FSM_STATE_STARINCMT][c].fsm_nextst = FSM_STATE_INCMT;
+		fsm[FSM_STATE_STARINCMT][c].fsm_action = FSM_ACT_SKIP;
+		fsm[FSM_STATE_STARINCMT][c].fsm_lextyp = LEXUNUSED;
+	}
+	fsm[FSM_STATE_STARINCMT]['*'].fsm_nextst = FSM_STATE_STARINCMT;
+	fsm[FSM_STATE_STARINCMT]['*'].fsm_action = FSM_ACT_SKIP;
+	fsm[FSM_STATE_STARINCMT]['*'].fsm_lextyp = LEXUNUSED;
+	fsm[FSM_STATE_STARINCMT]['/'].fsm_nextst = FSM_STATE_INIT;
+	fsm[FSM_STATE_STARINCMT]['/'].fsm_action = FSM_ACT_SKIP;
+	fsm[FSM_STATE_STARINCMT]['/'].fsm_lextyp = LEXUNUSED;
+
+
+#define	FSM_STATE_LINECMT       4
+/************************************************************************/
+/*									*/
+/* Transitions for  FSM_STATE_LINECMT  (5)                              */
+/*									*/
+/************************************************************************/
+
+	/* In a 1-line comment following slash slash */
+
+	for (c=0; c<=CHAR_RANGE; c++) {
+		fsm[FSM_STATE_LINECMT][c].fsm_nextst = FSM_STATE_LINECMT;
+		fsm[FSM_STATE_LINECMT][c].fsm_action = FSM_ACT_SKIP;
+		fsm[FSM_STATE_LINECMT][c].fsm_lextyp = LEXUNUSED;
+	}
+	fsm[FSM_STATE_LINECMT][NEWLINE].fsm_nextst = FSM_STATE_INIT;
+	fsm[FSM_STATE_LINECMT][NEWLINE].fsm_action = FSM_ACT_SKIP;
+	fsm[FSM_STATE_LINECMT][NEWLINE].fsm_lextyp = LEXUNUSED;
+
+
+#define	FSM_STATE_NAME          5
+/************************************************************************/
+/*									*/
+/* Transitions for  FSM_STATE_NAME  (6)                                 */
+/*									*/
+/************************************************************************/
+
+	/* In a name (have seen a letter) */
+
+	for (c=0; c<=CHAR_RANGE; c++) {
+		fsm[FSM_STATE_NAME][c].fsm_nextst = FSM_STATE_INIT;
+		fsm[FSM_STATE_NAME][c].fsm_action = FSM_ACT_RET;
+		fsm[FSM_STATE_NAME][c].fsm_lextyp = LEXNAME;
+	}
+	for (c='a'; c<='z'; c++) {
+		fsm[FSM_STATE_NAME][c].fsm_nextst = FSM_STATE_NAME;
+		fsm[FSM_STATE_NAME][c].fsm_action = FSM_ACT_APP;
+		fsm[FSM_STATE_NAME][c].fsm_lextyp = LEXNAME;
+	}
+	for (c='A'; c<='Z'; c++) {
+		fsm[FSM_STATE_NAME][c].fsm_nextst = FSM_STATE_NAME;
+		fsm[FSM_STATE_NAME][c].fsm_action = FSM_ACT_APP;
+		fsm[FSM_STATE_NAME][c].fsm_lextyp = LEXNAME;
+	}
+	for (c='0'; c<='9'; c++) {
+		fsm[FSM_STATE_NAME][c].fsm_nextst = FSM_STATE_NAME;
+		fsm[FSM_STATE_NAME][c].fsm_action = FSM_ACT_APP;
+		fsm[FSM_STATE_NAME][c].fsm_lextyp = LEXNAME;
+	}
+	fsm[FSM_STATE_NAME]['_'].fsm_nextst = FSM_STATE_NAME;
+	fsm[FSM_STATE_NAME]['_'].fsm_action = FSM_ACT_APP;
+	fsm[FSM_STATE_NAME]['_'].fsm_lextyp = LEXNAME;
+
+
+#define	FSM_STATE_ZERO          6
+/************************************************************************/
+/*									*/
+/* Transitions for  FSM_STATE_ZERO  (7)                                 */
+/*									*/
+/************************************************************************/
+
+	/* Have seen a zero */
+
+	for (c=0; c<=CHAR_RANGE; c++) {
+		fsm[FSM_STATE_ZERO][c].fsm_nextst = FSM_STATE_INIT;
+		fsm[FSM_STATE_ZERO][c].fsm_action = FSM_ACT_RET;
+		fsm[FSM_STATE_ZERO][c].fsm_lextyp = LEXNUM;
+	}
+	fsm[FSM_STATE_ZERO]['x'].fsm_nextst = FSM_STATE_HEXSTRT;
+	fsm[FSM_STATE_ZERO]['x'].fsm_action = FSM_ACT_APP;
+	fsm[FSM_STATE_ZERO]['x'].fsm_lextyp = LEXUNUSED;
+	for (c='0'; c<='9'; c++) {
+		fsm[FSM_STATE_ZERO][c].fsm_nextst = FSM_STATE_DECNUM;
+		fsm[FSM_STATE_ZERO][c].fsm_action = FSM_ACT_APP;
+		fsm[FSM_STATE_ZERO][c].fsm_lextyp = LEXUNUSED;
+	}
+
+
+#define	FSM_STATE_DECNUM        7
+/************************************************************************/
+/*									*/
+/* Transitions for  FSM_STATE_DECNUM  (8)                               */
+/*									*/
+/************************************************************************/
+
+	/* In a decimal number */
+
+	for (c=0; c<=CHAR_RANGE; c++) {
+		fsm[FSM_STATE_DECNUM][c].fsm_nextst = FSM_STATE_INIT;
+		fsm[FSM_STATE_DECNUM][c].fsm_action = FSM_ACT_RET;
+		fsm[FSM_STATE_DECNUM][c].fsm_lextyp = LEXNUM;
+	}
+	for (c='0'; c<='9'; c++) {
+		fsm[FSM_STATE_DECNUM][c].fsm_nextst = FSM_STATE_DECNUM;
+		fsm[FSM_STATE_DECNUM][c].fsm_action = FSM_ACT_APP;
+		fsm[FSM_STATE_DECNUM][c].fsm_lextyp = LEXUNUSED;
+	}
+
+#define	FSM_STATE_HEXSTRT       8
+/************************************************************************/
+/*									*/
+/* Transitions for  FSM_STATE_HEXSTRT  (9)                              */
+/*									*/
+/************************************************************************/
+
+	/* Have seen 0x and expect a hex number */
+
+	for (c='0'; c<='9'; c++) {
+		fsm[FSM_STATE_HEXSTRT][c].fsm_nextst = FSM_STATE_HEXNUM;
+		fsm[FSM_STATE_HEXSTRT][c].fsm_action = FSM_ACT_APP;
+		fsm[FSM_STATE_HEXSTRT][c].fsm_lextyp = LEXUNUSED;
+	}
+	for (c='a'; c<='f'; c++) {
+		fsm[FSM_STATE_HEXSTRT][c].fsm_nextst = FSM_STATE_HEXNUM;
+		fsm[FSM_STATE_HEXSTRT][c].fsm_action = FSM_ACT_APP;
+		fsm[FSM_STATE_HEXSTRT][c].fsm_lextyp = LEXUNUSED;
+	}
+	for (c='A'; c<='F'; c++) {
+		fsm[FSM_STATE_HEXSTRT][c].fsm_nextst = FSM_STATE_HEXNUM;
+		fsm[FSM_STATE_HEXSTRT][c].fsm_action = FSM_ACT_APP;
+		fsm[FSM_STATE_HEXSTRT][c].fsm_lextyp = LEXUNUSED;
+	}
+
+#define	FSM_STATE_HEXNUM        9
+/************************************************************************/
+/*									*/
+/* Transitions for  FSM_STATE_HEXNUM  (10)                              */
+/*									*/
+/************************************************************************/
+
+	/* In a hexadecimal number */
+
+	for (c=0; c<=CHAR_RANGE; c++) {
+		fsm[FSM_STATE_HEXNUM][c].fsm_nextst = FSM_STATE_INIT;
+		fsm[FSM_STATE_HEXNUM][c].fsm_action = FSM_ACT_RET;
+		fsm[FSM_STATE_HEXNUM][c].fsm_lextyp = LEXNUM;
+	}
+	for (c='0'; c<='9'; c++) {
+		fsm[FSM_STATE_HEXNUM][c].fsm_nextst = FSM_STATE_HEXNUM;
+		fsm[FSM_STATE_HEXNUM][c].fsm_action = FSM_ACT_APP;
+		fsm[FSM_STATE_HEXNUM][c].fsm_lextyp = LEXUNUSED;
+	}
+	for (c='a'; c<='f'; c++) {
+		fsm[FSM_STATE_HEXNUM][c].fsm_nextst = FSM_STATE_HEXNUM;
+		fsm[FSM_STATE_HEXNUM][c].fsm_action = FSM_ACT_APP;
+		fsm[FSM_STATE_HEXNUM][c].fsm_lextyp = LEXUNUSED;
+	}
+	for (c='A'; c<='F'; c++) {
+		fsm[FSM_STATE_HEXNUM][c].fsm_nextst = FSM_STATE_HEXNUM;
+		fsm[FSM_STATE_HEXNUM][c].fsm_action = FSM_ACT_APP;
+		fsm[FSM_STATE_HEXNUM][c].fsm_lextyp = LEXUNUSED;
+	}
+
+
+#define	FSM_STATE_ADD           10
+/************************************************************************/
+/*									*/
+/* Transitions for  FSM_STATE_ADD  (11)                                 */
+/*									*/
+/************************************************************************/
+
+	/* Have seen + or - */
+
+	for (c=0; c<=CHAR_RANGE; c++) {
+		fsm[FSM_STATE_ADD][c].fsm_nextst = FSM_STATE_INIT;
+		fsm[FSM_STATE_ADD][c].fsm_action = FSM_ACT_RET;
+		fsm[FSM_STATE_ADD][c].fsm_lextyp = LEXADDOP;
+	}
+	fsm[FSM_STATE_ADD]['='].fsm_nextst = FSM_STATE_INIT;
+	fsm[FSM_STATE_ADD]['='].fsm_action = FSM_ACT_ARET;
+	fsm[FSM_STATE_ADD]['='].fsm_lextyp = LEXASNOP;
+
+
+#define	FSM_STATE_MUL           11
+/************************************************************************/
+/*									*/
+/* Transitions for  FSM_STATE_MUL  (12)                                 */
+/*									*/
+/************************************************************************/
+
+	/* Have seen * or / (and / is not folowed bu a star) */
+
+	for (c=0; c<=CHAR_RANGE; c++) {
+		fsm[FSM_STATE_MUL][c].fsm_nextst = FSM_STATE_INIT;
+		fsm[FSM_STATE_MUL][c].fsm_action = FSM_ACT_RET;
+		fsm[FSM_STATE_MUL][c].fsm_lextyp = LEXMULOP;
+	}
+	fsm[FSM_STATE_MUL]['='].fsm_nextst = FSM_STATE_INIT;
+	fsm[FSM_STATE_MUL]['='].fsm_action = FSM_ACT_ARET;
+	fsm[FSM_STATE_MUL]['='].fsm_lextyp = LEXASNOP;
+
+
+#define	FSM_STATE_EQU           12
+/************************************************************************/
+/*									*/
+/* Transitions for  FSM_STATE_EQU  (13)                                 */
+/*									*/
+/************************************************************************/
+
+	/* Have seen an equal sign */
+
+	for (c=0; c<=CHAR_RANGE; c++) {
+		fsm[FSM_STATE_EQU][c].fsm_nextst = FSM_STATE_INIT;
+		fsm[FSM_STATE_EQU][c].fsm_action = FSM_ACT_RET;
+		fsm[FSM_STATE_EQU][c].fsm_lextyp = LEXASNOP;
+	}
+	fsm[FSM_STATE_EQU]['='].fsm_nextst = FSM_STATE_INIT;
+	fsm[FSM_STATE_EQU]['='].fsm_action = FSM_ACT_ARET;
+	fsm[FSM_STATE_EQU]['='].fsm_lextyp = LEXCMPOP;
+
+
+#define	FSM_STATE_CMP           13
+/************************************************************************/
+/*									*/
+/* Transitions for  FSM_STATE_CMP  (14)                                 */
+/*									*/
+/************************************************************************/
+
+	/* Have seen a comparison operator ( < > ! ) */
+
+	for (c=0; c<=CHAR_RANGE; c++) {
+		fsm[FSM_STATE_CMP][c].fsm_nextst = FSM_STATE_INIT;
+		fsm[FSM_STATE_CMP][c].fsm_action = FSM_ACT_RET;
+		fsm[FSM_STATE_CMP][c].fsm_lextyp = LEXCMPOP;
+	}
+	fsm[FSM_STATE_CMP]['='].fsm_nextst = FSM_STATE_INIT;
+	fsm[FSM_STATE_CMP]['='].fsm_action = FSM_ACT_ARET;
+	fsm[FSM_STATE_CMP]['='].fsm_lextyp = LEXCMPOP;
+
+
+#define	FSM_STATE_STR           14
+/************************************************************************/
+/*									*/
+/* Transitions for  FSM_STATE_STR  (15)                                 */
+/*									*/
+/************************************************************************/
+
+	/* Have seen a double quote */
+
+	for (c=0; c<=CHAR_RANGE; c++) {
+		fsm[FSM_STATE_STR][c].fsm_nextst = FSM_STATE_STR;
+		fsm[FSM_STATE_STR][c].fsm_action = FSM_ACT_APP;
+		fsm[FSM_STATE_STR][c].fsm_lextyp = LEXUNUSED;
+	}
+	fsm[FSM_STATE_STR]['\\'].fsm_nextst = FSM_STATE_STRESC;
+	fsm[FSM_STATE_STR]['\\'].fsm_action = FSM_ACT_APP;
+	fsm[FSM_STATE_STR]['\\'].fsm_lextyp = LEXUNUSED;
+	fsm[FSM_STATE_STR]['"'].fsm_nextst = FSM_STATE_INIT;
+	fsm[FSM_STATE_STR]['"'].fsm_action = FSM_ACT_ARET;
+	fsm[FSM_STATE_STR]['"'].fsm_lextyp = LEXSTR;
+	fsm[FSM_STATE_STR][NEWLINE].fsm_nextst = FSM_STATE_INIT;
+	fsm[FSM_STATE_STR][NEWLINE].fsm_action = FSM_ACT_ERR;
+	fsm[FSM_STATE_STR][NEWLINE].fsm_lextyp = LEXUNUSED;
+	fsm[FSM_STATE_STR]['\0'].fsm_nextst = FSM_STATE_INIT;
+	fsm[FSM_STATE_STR]['\0'].fsm_action = FSM_ACT_ERR;
+	fsm[FSM_STATE_STR]['\0'].fsm_lextyp = LEXUNUSED;
+
+#define	FSM_STATE_STRESC        15
+/************************************************************************/
+/*									*/
+/* Transitions for  FSM_STATE_STRESC  (16)                              */
+/*									*/
+/************************************************************************/
+
+	/* Have seen the backslah escape in a quoted string */
+
+	for (c=0; c<=CHAR_RANGE; c++) {
+		fsm[FSM_STATE_STRESC][c].fsm_nextst = FSM_STATE_STR;
+		fsm[FSM_STATE_STRESC][c].fsm_action = FSM_ACT_APP;
+		fsm[FSM_STATE_STRESC][c].fsm_lextyp = LEXUNUSED;
+	}
+
+
+#define	FSM_STATE_LOG_AND       16
+/************************************************************************/
+/*									*/
+/* Transitions for  FSM_STATE_LOG_AND  (17)                             */
+/*									*/
+/************************************************************************/
+
+	/* Have seen & */
+
+	for (c=0; c<=CHAR_RANGE; c++) {
+		fsm[FSM_STATE_LOG_AND][c].fsm_nextst = FSM_STATE_INIT;
+		fsm[FSM_STATE_LOG_AND][c].fsm_action = FSM_ACT_ERR;
+		fsm[FSM_STATE_LOG_AND][c].fsm_lextyp = LEXUNUSED;
+	}
+	fsm[FSM_STATE_LOG_AND]['&'].fsm_nextst = FSM_STATE_INIT;
+	fsm[FSM_STATE_LOG_AND]['&'].fsm_action = FSM_ACT_ARET;
+	fsm[FSM_STATE_LOG_AND]['&'].fsm_lextyp = LEXLOGIC;
+
+#define	FSM_STATE_LOG_OR        17
+/************************************************************************/
+/*									*/
+/* Transitions for  FSM_STATE_LOG_OR  (18)                              */
+/*									*/
+/************************************************************************/
+
+	/* Have seen | */
+
+	for (c=0; c<=CHAR_RANGE; c++) {
+		fsm[FSM_STATE_LOG_OR][c].fsm_nextst = FSM_STATE_INIT;
+		fsm[FSM_STATE_LOG_OR][c].fsm_action = FSM_ACT_ERR;
+		fsm[FSM_STATE_LOG_OR][c].fsm_lextyp = LEXUNUSED;
+	}
+	fsm[FSM_STATE_LOG_OR]['|'].fsm_nextst = FSM_STATE_INIT;
+	fsm[FSM_STATE_LOG_OR]['|'].fsm_action = FSM_ACT_ARET;
+	fsm[FSM_STATE_LOG_OR]['|'].fsm_lextyp = LEXLOGIC;
+#define	STATES			18

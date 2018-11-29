@@ -1,0 +1,342 @@
+..	#########################################################################
+..	#									#
+..	#  FSM diagram.  To typeset, use:					#
+..	#									#
+..	#		pic FSM.pic | troff -pFSM.ps				#
+..	#									#
+..	#########################################################################
+..
+..
+.sp .5i
+.ll 6.5i
+.po 1i
+.in 0
+.ps 9
+.vs -3
+.ft HB
+.PS
+#
+# FSM for f9
+#
+arrowhead	= 7
+arad		= .2
+circlerad	= .4
+
+define	d2r { ($1)*3.14159/180.0 }
+
+CENTER:	line invis right 6.5
+INIT:	circle "INIT" with .e at CENTER.w
+	PT1:	INIT.c+(circlerad*cos(d2r(45.0-20.0)), circlerad*sin(d2r(45.0-20.0)))
+	PT2:	INIT.c+(circlerad*cos(d2r(45.0+20.0)), circlerad*sin(d2r(45.0+20.0)))
+	TMP:	line invis from INIT.c to INIT.ne chop 0 chop -.3
+	PT3:	TMP.e
+
+	spline from PT1 to PT1+(.14,.06) to PT3 to INIT.ne+(.05,.3) to \
+		PT2 ->
+	"EOF  return LEXEOF" ljust at PT3+(.05,.08)
+
+	PT1:	INIT.c+(circlerad*cos(d2r(135.0-20.0)), circlerad*sin(d2r(135.0-20.0)))
+	PT2:	INIT.c+(circlerad*cos(d2r(135.0+20.0)), circlerad*sin(d2r(135.0+20.0)))
+	TMP:	line invis from INIT.c to INIT.nw chop 0 chop -.3
+	PT3:	TMP.w
+
+	spline from PT1 to PT1-(.06,-.14) to PT3 to INIT.nw-(.3,.05) to \
+		PT2 ->
+	"any"  "return" "LEXERR" at PT3+(.1,.2)
+
+
+SL:	arrow from INIT.e right 1
+	"'/'   save" ljust at SL.w+(.1,.1)
+SLASH:	circle "SLASH" with .w at SL.e
+
+SLRET:	arc rad 1.75 cw from SLASH.sw to INIT.se ->
+	"any   return LEXSLASH" at SLRET.s-(0,.11)
+
+ST:	arrow from SLASH.e right .8
+	"'*'   skip" ljust at ST.w+(.1,.1)
+
+
+INCMT:	circle "INCMT" with .w at ST.e
+	PT1:	INCMT.c+(circlerad*cos(d2r(70.0)), circlerad*sin(d2r(70.0)))
+	PT2:	INCMT.c+(circlerad*cos(d2r(180.0-70.0)), circlerad*sin(d2r(180-70.0)))
+	spline from PT1 to INCMT.ne-(.1,-.35) to \
+		INCMT.n+(0,.33) to INCMT.nw+(.1,.35) to \
+		PT2 ->
+	"any   skip" at INCMT.n+(0,.41)
+
+ST2:	arrow from INCMT.e right .8
+	"'*'   skip" ljust at ST2.w+(.1,.1)
+STARINCMT:	circle "STARINCMT" with .w at ST2.e
+	PT1:	STARINCMT.c+(circlerad*cos(d2r(70.0)), circlerad*sin(d2r(70.0)))
+	PT2:	STARINCMT.c+(circlerad*cos(d2r(180.0-70.0)), circlerad*sin(d2r(180-70.0)))
+	spline from PT1 to STARINCMT.ne-(.1,-.35) to \
+		STARINCMT.n+(0,.33) to STARINCMT.nw+(.1,.35) to \
+		PT2 ->
+	"'*'  skip" at STARINCMT.n+(0,.41)
+
+INBK:	arc rad 1.75 cw from STARINCMT.sw to INCMT.se ->
+	"any  skip" at INBK.s-(0,.11)
+
+SS:	arrow from SLASH.s down .4
+	"'/'  skip" ljust at SS.c+(.07,0)
+
+CMTOUT:	arrow from STARINCMT.e right .7
+RET:	Here
+	"'/'  skip" ljust at CMTOUT.w+(.1,.1)
+
+
+
+LINECMT: circle "LINECMT" with .n at SS.s
+	PT1:	LINECMT.c+(circlerad*cos(d2r(180.0-20.0)), circlerad*sin(d2r(180.0-20.0)))
+	PT2:	LINECMT.c+(circlerad*cos(d2r(180.0+20.0)), circlerad*sin(d2r(180.0+20.0)))
+	spline from PT1 to LINECMT.nw-(.35,.1) to \
+		LINECMT.w-(.33,0) to LINECMT.sw-(.35,-.1) to \
+		PT2 ->
+	"any  skip" rjust at LINECMT.w-(.41,0)
+LC:	arrow from LINECMT.e to (RET.x,Here.y)
+	"NEWLINE  skip" ljust at LC.w+(.1,.11)
+
+	TMP2: (RET.c.x,SLASH.se.y-.6)
+	TMP1: TMP2-(2.2,0)
+	arc rad 7 from SLASH.se to TMP1
+SLEQ:	arrow to TMP2
+	"'='  append&return  LEXASNOP" at SLEQ.c-(.1,-.1)
+
+
+
+NAME:	circle with .n at LINECMT.s-(0,.65) "NAME"
+	move to INIT.s+(.07,.02)
+	line to (Here.x, NAME.w.y+arad)
+	arc rad arad down
+NAM:	arrow to NAME.w
+	"A\-Z a\-z _   save" ljust at NAM.w+(.03,.11)
+
+	PT1:	NAME.c+(circlerad*cos(d2r(70.0)), circlerad*sin(d2r(70.0)))
+	PT2:	NAME.c+(circlerad*cos(d2r(180.0-70.0)), circlerad*sin(d2r(180-70.0)))
+	spline from PT1 to NAME.ne-(.1,-.35) to \
+		NAME.n+(0,.33) to NAME.nw+(.1,.35) to \
+		PT2 ->
+	"A\-Z a\-z 0\-9 _   append" at NAME.n+(0,.41)
+
+	move to NAME.e
+NRET:	arrow to (RET.c.x,Here.y)
+	"any    return LEXNAME" ljust at NRET.w+(.1,.11)
+
+ZERO:	circle with .n at NAME.s-(0,.2) "ZERO"
+	move to INIT.s
+	line to (Here.x, ZERO.w.y+arad)
+	arc rad arad down
+Z:	arrow to ZERO.w
+	"0    save" ljust at Z.w+(.03,.11)
+	move to ZERO.e
+ZRET:	arrow to (RET.c.x,Here.y)
+	"any    return LEXNUM" ljust at ZRET.w+(.1,.11)
+
+HEXSTRT: circle with .nw at ZERO.se+(0.5,-.4) "HEXSTRT"
+HEXNUM:  circle with .w at HEXSTRT.e+(0.7,0) "HEXNUM"
+HSTON:	arrow from HEXSTRT.e to HEXNUM.w
+	"0\-9 a\-f A\-F" "append" at HSTON.c+(0,.16)
+ZTOH:	arrow from ZERO.c to HEXSTRT.c chop circlerad chop circlerad
+	"'x'   append" ljust at ZTOH.c-(.06,-.15)
+	move to HEXNUM.e
+HRET:	arrow to (RET.c.x,Here.y)
+	"any" "return LEXNUM" at HRET.c+(0,.16)
+
+	PT1:	HEXNUM.c+(circlerad*cos(d2r(70.0)), circlerad*sin(d2r(70.0)))
+	PT2:	HEXNUM.c+(circlerad*cos(d2r(180.0-70.0)), circlerad*sin(d2r(180-70.0)))
+	spline from PT1 to HEXNUM.ne-(.1,-.35) to \
+		HEXNUM.n+(0,.33) to HEXNUM.nw+(.1,.35) to \
+		PT2 ->
+	"0\-9 a\-f A\-F  append" at HEXNUM.n+(0,.38)
+
+DECNUM:	circle with .n at (ZERO.s.x,HEXSTRT.s.y+.15) "DECNUM"
+ZTOD:	arrow from ZERO.c to DECNUM.c chop circlerad chop circlerad
+	"1\-9  append" rjust at ZTOD.n-(.05,.17)
+
+	PT1:	DECNUM.c+(circlerad*cos(d2r(135.0-20.0)), circlerad*sin(d2r(135.0-20.0)))
+	PT2:	DECNUM.c+(circlerad*cos(d2r(135.0+20.0)), circlerad*sin(d2r(135.0+20.0)))
+	TMP:	line invis from DECNUM.c to DECNUM.nw chop 0 chop -.3
+	PT3:	TMP.w
+
+	spline from PT1 to PT1-(.06,-.14) to PT3 to DECNUM.nw-(.3,.05) to \
+		PT2 ->
+	"1\-9   append" rjust at PT3+(.3,.1)
+
+	move to DECNUM.e
+DRET:	arrow to (RET.x,Here.y)
+	"any    return LEXNUM" ljust at DRET.w+(.1,.09)
+
+	move to INIT.s-(.07,-.02)
+DECDOWN:line to (Here.x, DECNUM.w.y+arad)
+	arc rad arad down
+DC:	arrow to DECNUM.w
+	"1\-9    save" ljust at DC.w+(.03,.11)
+
+QSTR:	circle with .n at DECNUM.s-(0,.3) "QSTR"
+	PT1:	QSTR.c+(circlerad*cos(d2r(135.0-20.0)), circlerad*sin(d2r(135.0-20.0)))
+	PT2:	QSTR.c+(circlerad*cos(d2r(135.0+20.0)), circlerad*sin(d2r(135.0+20.0)))
+	TMP:	line invis from QSTR.c to QSTR.nw chop 0 chop -.3
+	PT3:	TMP.w
+	move to QSTR.e
+QSTRRET:arrow to (RET.x, Here.y)
+	"'\"'   append&return  LEXSTR" ljust at QSTRRET.s+(.1,.1)
+
+	spline from PT1 to PT1-(.06,-.14) to PT3 to QSTR.nw-(.3,.05) to \
+		PT2 ->
+	"any   append" rjust at PT3+(.3,.1)
+
+	move to INIT.s-(.14,-.035)
+QDOWN:	line to (Here.x, QSTR.w.y+arad)
+	arc rad arad down
+QIN:	arrow to QSTR.w
+	"'\"'   save" at QIN.w+(.3,.11)
+
+QSTRESC:circle with .n at QSTR.s-(0,.35) "QSTRESC"
+QERET:	arrow from QSTRESC.e to (RET.x, QSTRESC.e.y)
+	"EOF  error" ljust at QERET.w+(.1,.1)
+QSTOE:	arc rad .9 from QSTR.sw to QSTRESC.nw ->
+	"'\\\'   append" rjust at QSTOE.w-(.07,0)
+
+QETOS:	arc rad .9 from QSTRESC.ne to QSTR.se ->
+	"any   append" ljust at QETOS.e+(.07,0)
+#
+# Return to INIT
+#
+
+	move to QERET.e-(0,.65)
+OTHER:	arrow up .4
+	
+RETURN:	line from Here+(0,.12) to (Here.x,INIT.n.y+.85-arad)
+	arc rad arad up
+	line to (INIT.n.x+arad, Here.y)
+	arc rad arad left
+	arrow to INIT.n
+	"from" "next" "page" at OTHER.s-(0,.25)
+
+#
+# To next page
+#
+
+	move to INIT.s-(.21,-.042)
+OTHER2:	arrow to (Here.x,OTHER.s.y)
+	"to" "next" "page" at OTHER2.s-(0,.25)
+.PE
+.bp
+.sp .3i
+.PS
+#
+# Second part of FSM for f9  -- DEPENDS ON VALUES IN THE PREVIOUS FIGURE
+#
+CENTER2:line invis right 6.5
+
+INPUT:	line invis from CENTER2.w+(circlerad,0) down 7
+RET:	arrow invis from INPUT.n+(5.6,-7) up 7
+
+	"from INIT" "(prev. page)" at INPUT.n+(0,.2)
+	"to INIT" "(prev. page)" at RET.n+(0,.2)
+
+	move to INPUT.n-(0,.25)
+SEMI:	arrow to (RET.c.x, Here.y)
+	"';'  save&return  LEXSEMI" ljust at SEMI.w+(.2,.1)
+
+	move to SEMI.w-(0,.32) 
+COMMA:	arrow to (RET.c.x, Here.y)
+	"','  save&return  LEXCOMMA" ljust at COMMA.w+(.2,.1)
+
+	move to COMMA.w-(0,.32) 
+LP:	arrow to (RET.c.x, Here.y)
+	"'('  save&return  LEXLP" ljust at LP.w+(.2,.1)
+
+	move to LP.w-(0,.32) 
+RP:	arrow to (RET.c.x, Here.y)
+	"')'  save&return  LEXRP" ljust at RP.w+(.2,.1)
+
+	move to RP.w-(0,.32) 
+LB:	arrow to (RET.c.x, Here.y)
+	"'{'  save&return  LEXLB" ljust at LB.w+(.2,.1)
+
+	move to LB.w-(0,.32) 
+RB:	arrow to (RET.c.x, Here.y)
+	"'}'  save&return  LEXRB" ljust at RB.w+(.2,.1)
+
+	move to RB.w-(0,.32) 
+LBK:	arrow to (RET.c.x, Here.y)
+	"'['  save&return  LEXLBK" ljust at LBK.w+(.2,.1)
+	move to LBK.w-(0,.32)
+RBK:	arrow to (RET.c.x, Here.y)
+	"']'  save&return  LEXRBK" ljust at RBK.w+(.2,.1)
+
+LOG_AND:circle with .n at (INPUT.c.x+1.2+circlerad, RBK.w.y-.3) "LOG_AND"
+LOGA:	arrow from (INPUT.c.x,LOG_AND.w.y) to LOG_AND.w
+	"'&'   save" ljust at LOGA.w+(.1,.1)
+
+	move to LOG_AND.ne
+LA1:	arrow to (RET.c.x, Here.y)
+	"'&'   append&return  LEXLOG" ljust at LA1.w+(.2,.1)
+	move to LOG_AND.se
+LA2:	arrow to (RET.c.x, Here.y)
+	"any    return LEXERR" ljust at LA2.w+(.2,.1)
+
+LOG_OR:	circle with .n at LOG_AND.s-(0,.3) "LOG_OR"
+LOGO:	arrow from (INPUT.c.x,LOG_OR.w.y) to LOG_OR.w
+	"'|'   save" ljust at LOGO.w+(.1,.1)
+
+	move to LOG_OR.ne
+LO1:	arrow to (RET.c.x, Here.y)
+	"'|'   append&return  LEXLOG" ljust at LO1.w+(.2,.1)
+	move to LOG_OR.se
+LO2:	arrow to (RET.c.x, Here.y)
+	"any    return LEXERR" ljust at LO2.w+(.2,.1)
+
+ADD:	circle with .n at LOG_OR.s-(0,.3) "ADD"
+ADIN1:	arrow from (INPUT.c.x,ADD.nw.y) to ADD.nw
+	"'+'   save" ljust at ADIN1.w+(.1,.1)
+ADIN2:	arrow from (INPUT.c.x,ADD.sw.y) to ADD.sw
+	"'-'   save" ljust at ADIN2.w+(.1,.1)
+	move to ADD.ne
+AO1:	arrow to (RET.c.x, Here.y)
+	"'='    append&return  LEXASNOP"  ljust at AO1.w+(.2,.1)
+	move to ADD.se
+AO2:	arrow to (RET.c.x, Here.y)
+	"any    return  LEXADDOP"  ljust at AO2.w+(.2,.1)
+
+MUL:	circle with .n at ADD.s-(0,.3) "MUL"
+MIN:	arrow from (INPUT.c.x,MUL.w.y) to MUL.w
+	"'*'   save" ljust at MIN.w+(.1,.1)
+	move to MUL.ne
+MO1:	arrow to (RET.c.x, Here.y)
+	"'='    append&return  LEXASNOP"  ljust at MO1.w+(.2,.1)
+	move to MUL.se
+MO2:	arrow to (RET.c.x, Here.y)
+	"any    return  LEXMULOP"  ljust at MO2.w+(.2,.1)
+
+CMP:	circle with .n at MUL.s-(0,.3) "CMP"
+CMPI1:	arrow from(INPUT.c.x,CMP.nw.y) to CMP.nw
+CMPI2:	arrow from(INPUT.c.x,CMP.w.y) to CMP.w
+CMPI3:	arrow from(INPUT.c.x,CMP.sw.y) to CMP.sw
+	"'<'   save" ljust at CMPI1.w+(.1,.1)
+	"'>'   save" ljust at CMPI2.w+(.1,.1)
+	"'!'   save" ljust at CMPI3.w+(.1,.1)
+	move to CMP.ne
+CMPO1:	arrow to (RET.c.x, Here.y)
+	"'='   append&return LEXCMPOP" ljust at CMPO1.w+(.2,.1)
+	move to CMP.se
+CMPO2:	arrow to (RET.c.x, Here.y)
+	"any   return LEXCMPOP" ljust at CMPO2.w+(.2,.1)
+
+
+EQU:	circle with .n at CMP.s-(0,.3) "EQU"
+EQUIN:	arrow from(INPUT.c.x+arad,EQU.w.y) to EQU.w
+	"'='   save" ljust at EQUIN.w+(.1,.1)
+	move to EQU.ne
+EQUO1:	arrow to (RET.c.x, Here.y)
+	"'='   append&return LEXCMPOP" ljust at EQUO1.w+(.2,.1)
+	move to EQU.se
+EQUO2:	line to (RET.c.x-arad, Here.y); arc rad arad right; arrow to RET.n
+	"any   return LEXCMPOP" ljust at EQUO2.w+(.2,.1)
+
+
+	line from INPUT.n to (INPUT.n.x,EQUIN.w.y+arad)
+	arc rad arad down
+
+.PE

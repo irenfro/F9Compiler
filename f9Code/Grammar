@@ -1,0 +1,190 @@
+			A Context Free Grammar For The F9 Language
+
+Overview
+
+   A grammar (technically, a context-free grammar) is a useful took for
+building a compiler.  Grammars have been studied by mathematicians, and
+the general theory goes far beyond what is needed/pertinent/useful for
+compiler construction.
+
+   You will not be able to appreciate how to construct a grammar until
+you see how it is used in a parser.  So, try to understand the basics
+now, and you will learn more as you construct a parser.
+
+
+Basics
+
+   A grammar specifies how to generate all valid sequences of tokens
+   (i.e., all possible programs in a given language).
+
+   Definition: a grammar is a sequence of 'productions', where is
+   production has the form
+
+	Symbol ->  sequence of symbols
+
+   For example, the following is a grammar:
+
+	A -> a B
+	B -> b B
+	B -> c
+
+Nomenclature
+
+   nonterminal symbol: a symbol that appears on the left-hand side of
+	at least one production
+
+   terminal symbol: a symbol that appears at least once in the right-hand
+	side of a production, but never appears on the left-hand side
+
+   start symbol: by convention, the symbol on the left-hand side of the
+	first production is called the 'start symbol'
+
+
+Algorithm to generate a valid program
+
+   Write down the start symbol as an initial sequence
+
+   Repeat until all symbols in the sequence are terminals {
+
+   Choose a specific occurrence of a nonterminal symbol, X, in
+	the current sequence
+   Select one of the productions in which X appears on left-hand
+	side, and replace the occurrence of X with the right-side
+	of the production
+   }
+
+
+Example
+
+    In the grammar above, nonterminals are upper-case letters are
+    nonterminals and lower-case letters are terminals.  The grammar
+    generates a sequence of 'a' followed by zero or more 'b's
+    followed by a 'c'.  ac  abc abbc abbbc, and so on.
+ 
+Notes For The f9 Grammar
+
+  1) In the f9 grammar below, each item in single quotes corresponds a
+     terminal in the grammar, and each terminal must correspond to a
+     token returned by the lexical analyzer.  The grammar could be written
+     to use constants, such as LEXPLUS, because '+' really means LEXPLUS,
+     '('really means LEXLP, and so on.  However, having literals in the
+     grammar makes it easier for humans to read.
+
+  2) Recall that a token has a type and a value, which allows equivalent
+     items to be grouped under the same type.  For example, the tokens
+     =  +=  -=  *=, and  /= can all be assigned the same lexical type
+     because they are all assignment operators.  So, we use (LEXASNOP in
+     the code).  The value of each token contains the actual characters.
+     Thus, a parser can use the type until it generates code.  The point
+     is that a production for an arithmetic expression can refer to any
+     operator that has the same precedence without specifying separate
+     productions for each individual operation.  Thus, addition and
+     subtraction operators ('+' and '-') both have the lexical type LEXADDOP,
+     the the parser only uses the value ('+' or '-') when generating code.
+     Also note: because they must be shared by both the lexical analyzer
+     and parser, the definitions of lexical types are placed in a file
+     that the parser and lexical analyzer both include.
+
+  3) An item not in quotes corresponds to a nonterminal.  For a given
+     nonterminal, the grammar must contain at least one production with
+     the nonterminal on the left-hand side.
+
+  4) The notation | gives an alternative right hand side.  So,
+
+	X  ->  Y  |  Z
+
+     merely abbreviates two productions:
+
+	X  ->  Y
+	X  ->  Z
+
+     Writing alternatives on multiple lines can make them easier to read:
+
+	X  ->  Y
+            |  Z
+
+  5) The notation  [ xxx ] means xxx is optional, and the notation [ xxx ]*
+     means xxx can be repeated zero or more times.  The use such abbreviations
+     makes the grammar smaller, easier to undersand, and easier to translate
+     directly into code for a top-down parser.  However, the abbreviations do
+     not increase the expressiveness of the grammar because an equivalent grammar
+     can be created without the repetition by introducing an extra non-terminal
+      and using an empty production.  For example,
+
+	stmts    ->  stmt  [  stmt  ]*
+
+     means the non-terminal stmts consists of a stmt followed by zero or more
+     occurrences of stmt.  It is equivalent to:
+
+        stmts    ->  stmt  optstmts
+	optstmts ->  stmts
+                 |   EMPTY
+
+     where EMPTY is a special value that corresponds to the empty sequence.
+ 
+  6) logop is the lexical type for either of the logical connectors   &&  ||
+
+  7) cmpop is the lexical type for any of   <  >  <=  >=  !=  ==
+
+  8) addop is the lexical type for any of   +  -  
+
+  9) mulop is the lexical type for any of   *  /
+
+ 10) id is the lexical type for an identifier that is not a reserved word.
+
+ 11) integer is the lexical type for a decimal or hex numeric integer constant
+
+ 12) Most errors are not mentioned, but the idea that one cannot use a semicolon
+     to represent an empty statement is incorporated into the grammar because it
+     stands out from C.
+
+ 13) In general, a top-down parser for the grammar will have one function for
+     each non-terminal.  Thus, when devising the productions for a given
+     non-terminal, a programmer can think of constructing a function.  We will
+     see examples.
+ 
+One possible grammar for f9
+
+program	    -> pgm  'EOF'
+
+pgm	    -> 'program'  '{'  decls  stmts '}'
+
+decls	    -> [ 'type'  var  [ ',' var ]* ';' ]*
+
+var	    -> 'name' [ '[' num ']' ]
+
+stmts	    -> stmt [ stmt ]* 		// Optimization is possible: note that
+					//  stmts is always followed by '}'
+
+stmt	    -> 'if'      if
+	    |  'while'   while
+	    |  'name'    asn
+	    |  'fcn'     fcn
+	    |  ';'       error (because f9 does not have a null statement)
+
+if	    -> '(' expr ')' '{' stmts '}'  [ 'else' '{' stmts '}' ]
+
+
+while	    -> '(' expr ')' '{' stmts '}'
+
+asn	    -> 'asnop'  'read'  read
+	    |  'asnop'  expr
+
+read	    -> '(' var [ ','  var ]*  ')'
+
+fcn	    -> 'exit' '(' expr ')' 
+	    |  'print' '(' item [ ',' item ]*  ')'
+
+item	    -> 'str'  |  expr
+
+expr	    -> comp  [ 'logop'  comp ]*	  // Reminder: logop is || or &&
+
+comp	    -> addn [ 'cmpop' addn ]*     // Reminder: cmpop is <  <=  >  >=  ==  or !=
+
+addn	    -> muln [ 'addop' muln ]*     // Reminder: addop is + or -
+
+muln	    -> term [ 'mulop' term ]*     // Reminder: mulop is * or /
+
+term	    -> '(' expr ')'
+	    |  var
+	    |  'integer'

@@ -36,7 +36,7 @@ void    pgm(void) {
     printf("#include <stdlib.h>\n");
     /* End Code Gen */
     match(LEXLB, "Expected \"{\"");
-    printf("void    main(void)  {\n");
+    printf("int    main(void)  {\n");
     parseDECLS();
     parseSTMTS();
     match(LEXRB, "Expected \"}\"");
@@ -222,28 +222,43 @@ void    parseASSIGN() {
 }
 
 void    parseREAD() {
-    printf(" /* CODE FOR READ */ \n");
-    int varindex;
-    int morevars;
     gettoken();
     match(LEXLP, "Expecting left paren");
-    morevars = 2;
-    int argcount = 0;
-    while(morevars > 0) {
-        argcount++;
-        if(nexttok.tok_typ != LEXNAME) {
-            errmsg("Expecting var name");
-        }
-        varindex = symLookup(nexttok.tok_str);
-        gettoken();
-        if(nexttok.tok_typ == LEXCOMMA) {
-            gettoken();
-        } else {
-            morevars = 0;
-        }
+	int	more;	
+    int	varindex;	
+    int	indexes[MAXARGS]; 
+    int	argc;
+
+	more = 1;
+	argc = 0;
+	while (more > 0) {
+
+		if (argc >= MAXARGS - 1) {
+			errmsg("too many arguments to 'read'");
+		}
+		if (nexttok.tok_typ != LEXNAME) {
+			errmsg("read expects a list of variable names");
+		}
+		varindex = symLookup(nexttok.tok_str);
+        indexes[argc++] = varindex;
+		gettoken();
+		if (nexttok.tok_typ == LEXCOMMA) {
+			gettoken();
+		} else {
+			more = 0;
+		}
+	}
+    match(LEXRP, "Expecting a ')'");
+    printf("scanf(\"");
+    for(int i = 0; i < argc; i++) {
+    	printf("%%d");
     }
-    match(LEXRP, "Expecting right paren");
-    return;
+    printf("\"");
+    for(int i = 0; i < argc; i++) {
+    	printf(", &%s", sym_tab[indexes[i]].sym_name);
+    }
+    printf(");\n");
+	return;
 }
 
 void    parseFCN(char* fname) {
@@ -310,5 +325,5 @@ int     symLookup(char* name) {
     if((indx = symFind(name)) == -1) {
         errmsg("Cannot find defined variable");
     }
-    return sym_tab[indx].val;
+    return indx;
 }

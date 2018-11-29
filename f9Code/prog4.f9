@@ -1,0 +1,117 @@
+program {
+
+	int	year;
+	int	month;
+	int	day;
+
+	int	days[12];	/* Days in each month			*/
+	int	dow;		/* Day of the week of Jan 1, 1900	*/
+	int	leap;		/* 1 => is a leap year			*/
+	int	tmp;		/* Termporary for modulo calculation	*/
+	int	err;		/* 0 => input OK, 1 => input invalid	*/
+	int	i;		/* Counts up to month - 1		*/
+				/* in the month				*/
+	str	dname[7], mname[12];
+
+
+
+	days[0] =  31;		/* January */
+	days[1] =  29;		/* February */
+	days[2] =  31;		/* March */
+	days[3] =  30;		/* April */
+	days[4] =  31;		/* May */
+	days[5] =  30;		/* June */
+	days[6] =  31;		/* July */
+	days[7] =  31;		/* August */
+	days[8] =  30;		/* September */
+	days[9] =  31;		/* October */
+	days[10] = 30;		/* November */
+	days[11] = 31;		/* December */
+
+	dname[0] = "Sunday";
+	dname[1] = "Monday";
+	dname[2] = "Tuesday";
+	dname[3] = "Wednesday";
+	dname[4] = "Thursday";
+	dname[5] = "Friday";
+	dname[6] = "Saturday";
+
+	mname[0] = "January";
+	mname[1] = "February";
+	mname[2] =  "March";
+	mname[3] =  "April";
+	mname[4] =  "May";
+	mname[5] =  "June";
+	mname[6] =  "July";
+	mname[7] =  "August";
+	mname[8] =  "September";
+	mname[9] =  "October";
+	mname[10] = "November";
+	mname[11] = "December";
+
+	while(1) {
+
+		err = 0;
+
+		print("\nEnter three integers for a month, day, and year")
+		print(" or any non-digit to quit: ")
+
+		tmp = read(month, day, year)
+		if (tmp != 3) {
+			print("\nExiting...\n\n")
+			exit(0)
+		}
+		print("\n")
+
+		if (month < 1) {
+			print("Month ",month, " is invalid (must be 1 - 12)")
+			err = 1;
+		}
+
+		if (month > 12) {
+			print("Month ",month, " is invalid (must be 1 - 12)")
+			err = 1;
+		}
+
+		if (day < 1) {
+			print("Day ",day, " must be positive")
+			err = 1;
+		}
+
+		if (year < 1900) {
+			print("Year ",year, " is too small (must be 1900 or greater)")
+			err = 1;
+		}
+
+		dow = 1;
+		leap = 0;	
+		if (year > 1900) {
+			dow += (year - 1900) + (year - 1901)/4;
+			tmp = year/4;
+			if (tmp*4 == year) {
+				leap = 1;
+			}
+		}
+		days[1] = 28 + leap;
+		if ( day > days[month-1]) {
+			print("Day ",day, " is invalid (must be betwen 1 and ",
+					days[month-1], "\n")
+			err = 1;
+		}
+
+		i = 1;
+		while (i < month) {
+			dow += days[i-1];
+			i += 1;
+		}
+		dow += day - 1;
+		tmp = dow / 7;
+		dow = dow - (7 * tmp);
+		if (err == 0) {
+			print("\n", mname[month-1]," ", day, ", ",year,
+				" falls on a ",	dname[dow])
+		}
+		print("\n")
+	}
+
+}
