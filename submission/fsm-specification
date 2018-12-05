@@ -1,0 +1,185 @@
+FSM_STATE_INIT
+
+	    /* Initial state */
+
+		any			FSM_STATE_INIT					FSM_ACT_ERR			LEXUNUSED
+
+		/* Whitespace */
+
+		BLANK		FSM_STATE_INIT					FSM_ACT_SKIP		LEXUNUSED
+		TAB			FSM_STATE_INIT					FSM_ACT_SKIP		LEXUNUSED
+		NEWLINE FSM_STATE_INIT					FSM_ACT_SKIP		LEXUNUSED
+
+		/* End of file */
+
+		EOF_CHAR		FSM_STATE_INIT			FSM_ACT_RET			LEXEOF
+
+		/* Slash - possible start of comment */
+
+		'/'			FSM_STATE_SLASH					FSM_ACT_SAVE		LEXUNUSED
+
+		/* Letters - start of name */
+
+		A-Z			FSM_STATE_NAME					FSM_ACT_SAVE		LEXUNUSED
+		a-z			FSM_STATE_NAME					FSM_ACT_SAVE		LEXUNUSED
+		'_'			FSM_STATE_NAME					FSM_ACT_SAVE		LEXUNUSED
+
+		/* Numbers - start of a numeric constant */
+
+		'0'			FSM_STATE_ZERO					FSM_ACT_SAVE		LEXUNUSED
+		1-9			FSM_STATE_DECNUM				FSM_ACT_SAVE		LEXUNUSED
+
+		/* Individual characters (){};, */
+
+		'('			FSM_STATE_INIT					FSM_ACT_SRET		LEXLP
+		')'			FSM_STATE_INIT					FSM_ACT_SRET		LEXRP
+		'{'			FSM_STATE_INIT					FSM_ACT_SRET		LEXLB
+		'}'			FSM_STATE_INIT					FSM_ACT_SRET		LEXRB
+		';'			FSM_STATE_INIT					FSM_ACT_SRET		LEXSEMI
+		','			FSM_STATE_INIT					FSM_ACT_SRET		LEXCOMMA
+
+		/* Logical connectors && || */
+
+		'&'			FSM_STATE_LOG_AND				FSM_ACT_SAVE		LEXUNUSED
+		'|'			FSM_STATE_LOG_OR				FSM_ACT_SAVE		LEXUNUSED
+
+		/* Comparision */
+
+		'<'			FSM_STATE_CMP						FSM_ACT_SAVE		LEXUNUSED
+		'>'			FSM_STATE_CMP						FSM_ACT_SAVE		LEXUNUSED
+		'!'			FSM_STATE_CMP						FSM_ACT_SAVE		LEXUNUSED
+		'='			FSM_STATE_EQU						FSM_ACT_SAVE		LEXUNUSED
+
+		/* + - or * (could be followed by an equal sign) */
+		/*			Note: should change genfs to allow '-'	 */
+
+		'+'			FSM_STATE_ADD						FSM_ACT_SAVE		LEXUNUSED
+		'-'			FSM_STATE_ADD						FSM_ACT_SAVE		LEXUNUSED
+		'*'			FSM_STATE_MUL						FSM_ACT_SAVE		LEXUNUSED
+
+		/* Quoted string (used in the print function) */
+
+		'"'			FSM_STATE_STR						FSM_ACT_SAVE		LEXUNUSED
+
+FSM_STATE_SLASH
+
+		/* Have seen a slash */
+
+		any			FSM_STATE_INIT					FSM_ACT_RET			LEXMULOP
+		'='			FSM_STATE_INIT					FSM_ACT_APP			LEXASNOP
+		'*'			FSM_STATE_INCMT					FSM_ACT_SKIP		LEXUNUSED
+		'/'			FSM_STATE_LINECMT				FSM_ACT_SKIP		LEXUNUSED
+
+FSM_STATE_INCMT
+
+		/* In a comment, having seen a slash star */
+
+		any			FSM_STATE_INCMT					FSM_ACT_SKIP		LEXUNUSED
+		'*'			FSM_STATE_STARINCMT			FSM_ACT_SKIP		LEXUNUSED
+
+FSM_STATE_STARINCMT
+
+		/* Have seen a star while in a comment */
+
+		any			FSM_STATE_INCMT					FSM_ACT_SKIP		LEXUNUSED
+		'*'			FSM_STATE_STARINCMT			FSM_ACT_SKIP		LEXUNUSED
+		'/'			FSM_STATE_INIT					FSM_ACT_SKIP		LEXUNUSED
+
+FSM_STATE_LINECMT
+
+		/* In a 1-line comment following slash slash */
+
+		any			FSM_STATE_LINECMT				FSM_ACT_SKIP		LEXUNUSED
+		NEWLINE FSM_STATE_INIT					FSM_ACT_SKIP		LEXUNUSED
+
+FSM_STATE_NAME
+
+		/* In a name (have seen a letter) */
+
+		any			FSM_STATE_INIT					FSM_ACT_RET			LEXNAME
+		a-z			FSM_STATE_NAME					FSM_ACT_APP			LEXNAME
+		A-Z			FSM_STATE_NAME					FSM_ACT_APP			LEXNAME
+		0-9			FSM_STATE_NAME					FSM_ACT_APP			LEXNAME
+		'_'			FSM_STATE_NAME					FSM_ACT_APP			LEXNAME
+
+FSM_STATE_ZERO
+
+		/* Have seen a zero */
+
+		any			FSM_STATE_INIT					FSM_ACT_RET			LEXNUM
+		'x'			FSM_STATE_HEXNUM				FSM_ACT_APP			LEXUNUSED
+		0-9			FSM_STATE_DECNUM				FSM_ACT_APP			LEXUNUSED
+
+FSM_STATE_DECNUM
+
+		/* In a decimal number */
+
+		any			FSM_STATE_INIT					FSM_ACT_RET			LEXNUM
+		0-9			FSM_STATE_DECNUM				FSM_ACT_APP			LEXUNUSED
+
+FSM_STATE_HEXNUM
+
+		/* In a hexadecimal number */
+
+		any			FSM_STATE_INIT					FSM_ACT_RET			LEXNUM
+		0-9			FSM_STATE_HEXNUM				FSM_ACT_APP			LEXUNUSED
+		a-f			FSM_STATE_HEXNUM				FSM_ACT_APP			LEXUNUSED
+		A-F			FSM_STATE_HEXNUM				FSM_ACT_APP			LEXUNUSED
+
+FSM_STATE_ADD
+
+		/* Have seen + or - */
+
+		any			FSM_STATE_INIT					FSM_ACT_RET			LEXADDOP
+		'='			FSM_STATE_INIT					FSM_ACT_ARET		LEXASNOP
+
+FSM_STATE_MUL
+
+		/* Have seen a * or / (and / is not followed by a star) */
+
+		any			FSM_STATE_INIT					FSM_ACT_RET			LEXMULOP
+		'='			FSM_STATE_INIT					FSM_ACT_ARET		LEXASNOP
+
+FSM_STATE_EQU
+
+		/* Have seen an equal sign */
+
+		any			FSM_STATE_INIT					FSM_ACT_RET			LEXASNOP
+		'='			FSM_STATE_INIT					FSM_ACT_ARET		LEXCMPOP
+
+FSM_STATE_CMP
+
+		/* Have seen a comparision operator ( < > ! )*/
+
+		any			FSM_STATE_INIT					FSM_ACT_RET			LEXCMPOP
+		'='			FSM_STATE_INIT					FSM_ACT_ARET		LEXCMPOP
+
+FSM_STATE_STR
+
+		/* Have seen a double quote */
+
+		any			FSM_STATE_STR						FSM_ACT_APP			LEXUNUSED
+		'\\'		FSM_STATE_STRESC				FSM_ACT_APP			LEXUNUSED
+		'"'			FSM_STATE_INIT					FSM_ACT_ARET		LEXSTR
+		NEWLINE FSM_STATE_INIT					FSM_ACT_ERR			LEXUNUSED
+		'\0'		FSM_STATE_INIT					FSM_ACT_ERR			LEXUNUSED
+
+FSM_STATE_STRESC
+
+		/* Have seen the backslash escape in a quoted string */
+
+		any			FSM_STATE_STR						FSM_ACT_APP			LEXUNUSED
+
+FSM_STATE_LOG_AND
+		
+		/* Have seen & */
+
+		any			FSM_STATE_INIT					FSM_ACT_ERR			LEXUNUSED
+		'&'			FSM_STATE_INIT					FSM_ACT_ARET		LEXLOGIC
+
+FSM_STATE_LOG_OR
+
+		/* Have seen a | */
+
+		any			FSM_STATE_INIT					FSM_ACT_ERR			LEXUNUSED
+		'|'			FSM_STATE_INIT					FSM_ACT_ARET		LEXLOGIC
