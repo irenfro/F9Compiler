@@ -141,7 +141,7 @@
                fsm[FSM_STATE_SLASH][c].fsm_lextyp = LEXMULOP;
         }
         fsm[FSM_STATE_SLASH]['='].fsm_nextst = FSM_STATE_INIT;
-        fsm[FSM_STATE_SLASH]['='].fsm_action = FSM_ACT_APP;
+        fsm[FSM_STATE_SLASH]['='].fsm_action = FSM_ACT_ARET;
         fsm[FSM_STATE_SLASH]['='].fsm_lextyp = LEXASNOP;
         fsm[FSM_STATE_SLASH]['*'].fsm_nextst = FSM_STATE_INCMT;
         fsm[FSM_STATE_SLASH]['*'].fsm_action = FSM_ACT_SKIP;
